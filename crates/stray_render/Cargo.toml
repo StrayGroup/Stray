@@ -1,0 +1,13 @@
+[package]
+name = "stray_render"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+wgpu = "0.14.2"
+winit = "0.27.5"
+pollster = "0.2.5"
+legion = "0.4.0"
+stray_material = {path="../stray_material"}

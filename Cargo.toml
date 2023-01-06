@@ -1,0 +1,29 @@
+[package]
+name = "stray"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace]
+exclude = ["modules/*", "thirdparty/*", "stray_be"]
+members = ["crates/*"]
+
+[features]
+default = ["stray_render", "stray_ecs", "stray_material"]
+
+stray_render = ["stray_internal/stray_render"]
+
+stray_material = ["stray_internal/stray_material"]
+
+stray_ecs = ["stray_internal/stray_ecs"]
+
+[dependencies]
+
+stray_internal = {path = "crates/stray_internal", default-features = false}
+legion = "0.4.0"
+
+
+[[example]]
+name = "hello_world"
+path = "examples/hello_world.rs"

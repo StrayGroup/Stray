@@ -1,0 +1,12 @@
+[package]
+name = "stray_internal"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+stray_render = {path="../stray_render", optional = true}
+stray_ecs = {path="../stray_ecs", optional = true}
+stray_material = {path="../stray_material", optional = true}
+stray_api = {path="../stray_api"}

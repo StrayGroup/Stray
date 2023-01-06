@@ -1,0 +1,20 @@
+name: Add Feature
+description: Add a feature in Stray
+body:
+- type: input
+  attributes:
+    label: Overview
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Features
+  validations:
+    required: false
+
+- type: textarea
+  attributes:
+    label: References
+  validations:
+    required: false
