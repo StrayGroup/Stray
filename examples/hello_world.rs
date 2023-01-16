@@ -12,7 +12,7 @@ fn draw(draw: &mut Draw){
 
 fn main(){
     let mut stray = Stray::new(World::default());
-    let settings = Settings::with_title("Stray App", Backend::Vulkan); 
+    let settings = Settings::with_title("Stray App", Backend::All); 
     stray.world.push((Draw::init(),));
     stray.add_system(draw_system());
     stray.run(&settings);

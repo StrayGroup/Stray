@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace]
-exclude = ["modules/*", "thirdparty/*", "stray_be"]
+exclude = ["modules/*", "thirdparty/*", "extension"]
 members = ["crates/*"]
 
 [features]
