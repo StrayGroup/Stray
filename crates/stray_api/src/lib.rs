@@ -5,6 +5,7 @@ use winit::{
     window::WindowBuilder,
 };
 use std::borrow::Cow;
+use wgpu::Backend;
 
 use stray_render::*;
 mod settings;
@@ -41,16 +42,18 @@ impl <'a>Stray<'a>{
         let mut schedule = self.schedule_builder.build();
         parse_settings(settings,&window);
         let mut render = match settings.backend{
-            Backend::DX12 => {WgpuRender::init(Backend::DX12, &window)}
-            Backend::Metal => {WgpuRender::init(Backend::Metal, &window)}
-            Backend::Vulkan => {WgpuRender::init(Backend::Vulkan, &window)}
-            Backend::All => {WgpuRender::init(Backend::All, &window)}
+            StrayBackend::DX12 => {WgpuRender::init(StrayBackend::DX12, &window)}
+            StrayBackend::Metal => {WgpuRender::init(StrayBackend::Metal, &window)}
+            StrayBackend::Vulkan => {WgpuRender::init(StrayBackend::Vulkan, &window)}
+            StrayBackend::All => {WgpuRender::init(StrayBackend::All, &window)}
         };
         schedule.execute(&mut self.world, &mut self.resources);
         let raw_window_size = [render.config.height as i32, render.config.height as i32];
         for i in self.display_elements{
             if let Some(comp) = self.world.entry(*i){
                 let raw_vertices: Vec<RawVertex> = comp.get_component::<Draw>().unwrap().vertices.iter().map(|c| c.to_raw(raw_window_size)).collect();
+                let indices = comp.get_component::<Draw>().unwrap().indices.as_slice();
+                render.set_indices_buffer(indices);
                 render.set_vertex_buffer(raw_vertices.as_slice());
             }
         }

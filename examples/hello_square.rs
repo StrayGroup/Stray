@@ -5,10 +5,14 @@ use legion::*;
 #[system(for_each)]
 fn draw(draw: &mut Draw){
     let vertices = vec![
-        Vertex::new(-500, -500), Vertex::new(500, -500), Vertex::new(-500, 500), 
-        // Square:
-        // Vertex::new(-500, 500), Vertex::new(500, -500), Vertex::new(500, 500),
+        Vertex::new(-500, -500), Vertex::new(500, -500), Vertex::new(-500, 500), Vertex::new(500, 500)
     ];
+
+    let indices = vec![
+        0, 1, 2,
+        2, 1, 3
+    ];
+
     let color = Color{
         r: 255,
         g: 255,
@@ -17,6 +21,7 @@ fn draw(draw: &mut Draw){
     };
     let material = StandardMaterial::new(color);
     draw.set_vertices(vertices);
+    draw.set_indices(indices);
     draw.set_material(material);
 }
 

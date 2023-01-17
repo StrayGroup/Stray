@@ -5,16 +5,21 @@ use std::mem;
 
 pub struct Draw{
     pub vertices: Vec<Vertex>,
+    pub indices: Vec<u16>,
     pub material: Option<StandardMaterial>,
 }
 
 impl Draw{
     pub fn init() -> Self{
-        Self{vertices: vec![], material: None}
+        Self{vertices: vec![], indices: vec![], material: None}
     }
 
     pub fn set_vertices(&mut self, vertices: Vec<Vertex> ){
         self.vertices = vertices;
+    }
+
+    pub fn set_indices(&mut self, indices: Vec<u16>){
+        self.indices = indices;
     }
 
     pub fn set_material(&mut self, material: StandardMaterial){

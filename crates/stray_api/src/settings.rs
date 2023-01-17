@@ -1,15 +1,15 @@
-use stray_render::Backend;
+use stray_render::StrayBackend;
 
 #[derive(Default)]
 pub struct Settings{
     pub always_on_top: bool,
     pub title: String,
     pub resizable: bool,
-    pub backend: Backend
+    pub backend: StrayBackend
 }
 
 impl Settings{
-    pub fn with_title(title: &str, backend: Backend) -> Self{
+    pub fn with_title(title: &str, backend: StrayBackend) -> Self{
         let mut ret = Self::default();
         ret.title = title.to_string();
         ret.backend = backend;

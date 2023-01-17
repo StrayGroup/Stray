@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+wgpu = "0.14.2"
 legion = "0.4.0"
 winit = "0.27.5"
 stray_render= {path="../stray_render"}
