@@ -41,20 +41,30 @@ impl Vertex{
     }
 
     pub fn to_raw(&self, win_size: [i32;2]) -> RawVertex{
-        RawVertex { position: [self.x as f32/win_size[0] as f32, self.y as f32/win_size[1] as f32], color: [self.material.color.r as f32/255.0 , self.material.color.g as f32/255.0, self.material.color.b as f32/255.0]}
+        RawVertex { 
+            position: [
+                self.x as f32/win_size[0] as f32, 
+                self.y as f32/win_size[1] as f32, 
+                self.layer as f32], 
+            color: [
+                (((self.material.color.r / 255) as f32 + 0.055) / 1.055).powf(2.4), 
+                (((self.material.color.g / 255) as f32 + 0.055) / 1.055).powf(2.4), 
+                (((self.material.color.b / 255) as f32 + 0.055) / 1.055).powf(2.4), 
+                self.material.color.a]
+            }
     }
 }
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct RawVertex{
-    position: [f32;2],
-    color: [f32;3],
+    position: [f32;3],
+    color: [f32;4],
 }
 
 impl RawVertex{
     const ATTRIBS: [VertexAttribute; 2] =
-        vertex_attr_array![0 => Float32x2, 1 => Float32x3];
+        vertex_attr_array![0 => Float32x3, 1 => Float32x4];
 
     pub fn desc<'a>() -> VertexBufferLayout<'a> {
         VertexBufferLayout {

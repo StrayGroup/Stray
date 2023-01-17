@@ -24,21 +24,21 @@ pub fn create_pipeline(device: &Device, config: &SurfaceConfiguration) -> Render
             entry_point: "fs_main",
             targets: &[Some(wgpu::ColorTargetState {
                 format: config.format,
-                blend: Some(wgpu::BlendState::REPLACE),
+                blend: Some(BlendState::ALPHA_BLENDING),
                 write_mask: wgpu::ColorWrites::ALL,
             })],
         }),
-        primitive: wgpu::PrimitiveState {
-            topology: wgpu::PrimitiveTopology::TriangleList,
+        primitive: PrimitiveState {
+            topology: PrimitiveTopology::TriangleList,
             strip_index_format: None,
-            front_face: wgpu::FrontFace::Ccw,
-            cull_mode: Some(wgpu::Face::Back),
-            polygon_mode: wgpu::PolygonMode::Fill,
+            front_face: FrontFace::Ccw,
+            cull_mode: Some(Face::Back),
+            polygon_mode: PolygonMode::Fill,
             unclipped_depth: false,
             conservative: false,
         },
         depth_stencil: None,
-        multisample: wgpu::MultisampleState {
+        multisample: MultisampleState {
             count: 1,
             mask: !0,
             alpha_to_coverage_enabled: false,
