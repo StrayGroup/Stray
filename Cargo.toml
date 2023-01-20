@@ -9,18 +9,10 @@ edition = "2021"
 exclude = ["modules/*", "thirdparty/*", "extension"]
 members = ["crates/*"]
 
-[features]
-default = ["stray_render", "stray_ecs", "stray_material"]
-
-stray_render = ["stray_internal/stray_render"]
-
-stray_material = ["stray_internal/stray_material"]
-
-stray_ecs = ["stray_internal/stray_ecs"]
 
 [dependencies]
 
-stray_internal = {path = "crates/stray_internal", default-features = false}
+stray_internal = {path = "crates/stray_internal"}
 legion = "0.4.0"
 
 

@@ -10,3 +10,5 @@ wgpu = "0.14.2"
 legion = "0.4.0"
 winit = "0.27.5"
 stray_render= {path="../stray_render"}
+stray_scene = {path="../stray_scene"}
+stray_texture = {path="../stray_texture"}

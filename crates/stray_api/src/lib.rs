@@ -1,68 +1,44 @@
 use legion::*;
+use stray_scene::EngineData;
+use wgpu::{Surface, Device, SurfaceConfiguration};
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
+    window::{WindowBuilder, Window}, dpi::PhysicalSize,
 };
-use std::borrow::Cow;
-use wgpu::Backend;
 
 use stray_render::*;
-mod settings;
-pub use settings::*;
 
-pub struct Stray<'a>{
-    pub world: World,
-    pub resources: Resources,
-    pub render: Option<WgpuRender>,
-    pub display_elements: &'a [Entity],
-    schedule_builder: legion::systems::Builder
+mod settings;
+use settings::*;
+
+pub struct Stray{
+    schedule: Option<Schedule>,
+    resources: Resources,
+    window: Window,
+    event_loop: EventLoop<()>,
+    world: World,
 }
 
-impl <'a>Stray<'a>{
-    pub fn new(world: World) -> Self{
-        let resources = Resources::default();
-        let schedule_builder = Schedule::builder();
-        let render = None;
-        let display_elements = &[];
-        Self { world, resources, render, display_elements, schedule_builder}
+impl Stray{
+    pub fn new() -> StrayBuilder{
+        StrayBuilder::new()
     }
-
-    pub fn add_system<T>(&mut self, system: T)
-    where
-        T: systems::ParallelRunnable + 'static
-    {
-        self.schedule_builder.add_system(system);
-    }
-
-    pub fn run(&mut self, settings: &Settings) {
-        let event_loop = EventLoop::new();
-        let window = WindowBuilder::new().build(&event_loop).unwrap();
-        //self.schedule_builder.add_system(stray_render::draw_system());
-        let mut schedule = self.schedule_builder.build();
-        parse_settings(settings,&window);
-        let mut render = match settings.backend{
-            StrayBackend::DX12 => {WgpuRender::init(StrayBackend::DX12, &window)}
-            StrayBackend::Metal => {WgpuRender::init(StrayBackend::Metal, &window)}
-            StrayBackend::Vulkan => {WgpuRender::init(StrayBackend::Vulkan, &window)}
-            StrayBackend::All => {WgpuRender::init(StrayBackend::All, &window)}
-        };
-        schedule.execute(&mut self.world, &mut self.resources);
-        let raw_window_size = [render.config.height as i32, render.config.height as i32];
-        for i in self.display_elements{
-            if let Some(comp) = self.world.entry(*i){
-                let raw_vertices: Vec<RawVertex> = comp.get_component::<Draw>().unwrap().vertices.iter().map(|c| c.to_raw(raw_window_size)).collect();
-                let indices = comp.get_component::<Draw>().unwrap().indices.as_slice();
-                render.set_indices_buffer(indices);
-                render.set_vertex_buffer(raw_vertices.as_slice());
+    pub fn run(mut self) {
+        let mut g_schedule = self.schedule.unwrap();
+        match initialize_render(&mut self.resources, &self.window, StrayBackend::All){
+            Err(e) => {
+                eprintln!("Render Error: {}", e);
+                std::process::exit(1);
             }
+            Ok(_) => {}
         }
-        event_loop.run(move |event, _, control_flow| 
+        self.event_loop.run(move |event, _, control_flow| 
             match event {
                 Event::WindowEvent {
                     ref event,
                     window_id,
-                } if window_id == window.id() => match event {
+                } if window_id == self.window.id() => match event {
                     WindowEvent::CloseRequested
                     | WindowEvent::KeyboardInput {
                         input:
@@ -73,18 +49,104 @@ impl <'a>Stray<'a>{
                             },
                         ..
                     } => *control_flow = ControlFlow::Exit,
-
+                    WindowEvent::Resized(physical_size) => {
+                        resize(&self.resources, *physical_size);
+                    }
+                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                        resize(&self.resources, **new_inner_size);
+                    }
                     _ => {}
                 },
                 Event::RedrawRequested(_) => {
                     
-                    render.redraw();
                 },
+                Event::MainEventsCleared => {
+                    g_schedule.execute(&mut self.world, &mut self.resources);
+                }
                 _ => {}
         });
     }
+}
 
-    pub fn display(&mut self, entities: &'a [Entity]){
-        self.display_elements = entities;
+pub struct StrayBuilder{
+    schedule: systems::Builder,
+    stray: Stray,
+    settings: Settings,
+}
+
+impl StrayBuilder{
+    pub fn new() -> Self{
+        let schedule = Schedule::builder();
+        let settings = Settings::default();
+        let event_loop = EventLoop::new();
+        let window = WindowBuilder::new()
+            .with_inner_size(PhysicalSize::new(600, 600))
+            .build(&event_loop).unwrap();
+        let stray = Stray { 
+            schedule: None,  
+            resources: Resources::default(), 
+            window: window, 
+            event_loop: event_loop, 
+            world: World::default() 
+        };
+
+        Self { 
+            schedule, 
+            stray,
+            settings,
+        }
+    }
+    pub fn with_title(mut self, title: &str) -> Self{
+        self.settings.title = title.to_string();
+        self
+    }
+
+    pub fn add_system<S>(mut self, system: S) -> Self
+    where
+        S: systems::ParallelRunnable + 'static
+    {
+        self.schedule.add_system(system);
+        self
+    }
+
+    pub fn push<T>(mut self, comp: T) ->  Self
+    where
+        Option<T>: storage::IntoComponentSource
+    {
+        self.stray.world.push(comp);
+        self
+    }
+
+    pub fn insert<T>(mut self, res: T) -> Self
+    where
+        T: 'static
+    {
+        self.stray.resources.insert(res);
+        self
+    }
+
+    pub fn init_systems(&mut self){
+        self.schedule.add_system(read_geometry_system());
+        self.schedule.add_system(redraw_system());
+    }
+    
+    pub fn build(mut self) -> Stray{
+        self.init_systems();
+        parse_settings(&self.settings,&self.stray.window);
+        self.stray.schedule = Some(self.schedule.build());
+        self.stray
+    }
+
+
+}
+
+
+// Other stuff
+
+pub fn resize(res: &Resources, new_size: winit::dpi::PhysicalSize<u32>) {
+    if new_size.width > 0 && new_size.height > 0 {
+        res.get_mut::<EngineData<SurfaceConfiguration>>().unwrap().0.width = new_size.width;
+        res.get_mut::<EngineData<SurfaceConfiguration>>().unwrap().0.height = new_size.height;
+        res.get::<EngineData<Surface>>().unwrap().0.configure(&res.get::<EngineData<Device>>().unwrap().0, &res.get::<EngineData<SurfaceConfiguration>>().unwrap().0);
     }
 }

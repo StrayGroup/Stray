@@ -12,4 +12,6 @@ pollster = "0.2.5"
 legion = "0.4.0"
 bytemuck = {version = "1.12.3", features = ["derive"]}
 stray_material = {path="../stray_material"}
+stray_scene = {path="../stray_scene"}
+stray_texture = {path="../stray_texture"}
 

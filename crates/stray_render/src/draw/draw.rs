@@ -1,15 +1,17 @@
-use stray_material::StandardMaterial;
-use stray_material::Color;
 use wgpu::*;
-use std::mem;
 
-pub struct Draw{
+use stray_material::{
+    StandardMaterial, 
+    Color
+};
+
+pub struct ScreenDraw{
     pub vertices: Vec<Vertex>,
     pub indices: Vec<u16>,
     pub material: Option<StandardMaterial>,
 }
 
-impl Draw{
+impl ScreenDraw{
     pub fn init() -> Self{
         Self{vertices: vec![], indices: vec![], material: None}
     }
@@ -73,7 +75,7 @@ impl RawVertex{
 
     pub fn desc<'a>() -> VertexBufferLayout<'a> {
         VertexBufferLayout {
-            array_stride: mem::size_of::<Self>() as BufferAddress,
+            array_stride: std::mem::size_of::<Self>() as BufferAddress,
             step_mode: VertexStepMode::Vertex,
             attributes: &Self::ATTRIBS,
         }

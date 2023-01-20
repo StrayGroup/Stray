@@ -3,11 +3,9 @@ use legion::*;
 
 
 #[system(for_each)]
-fn draw(draw: &mut Draw){
+fn draw(draw: &mut ScreenDraw){
     let vertices = vec![
         Vertex::new(-500, -500), Vertex::new(500, -500), Vertex::new(-500, 500), 
-        // Square:
-        // Vertex::new(-500, 500), Vertex::new(500, -500), Vertex::new(500, 500),
     ];
     let color = Color{
         r: 255,
@@ -21,11 +19,10 @@ fn draw(draw: &mut Draw){
 }
 
 fn main(){
-    let mut stray = Stray::new(World::default());
-    let settings = Settings::with_title("Stray App", StrayBackend::All); 
-    let entity = stray.world.push((Draw::init(),));
-    let display = [entity];
-    stray.display(&display);
-    stray.add_system(draw_system());
-    stray.run(&settings);
+    Stray::new()
+        .with_title("Stray App")
+        .push((ScreenDraw::init(),))
+        .add_system(draw_system())
+        .build()
+        .run();
 }

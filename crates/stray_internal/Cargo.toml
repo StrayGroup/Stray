@@ -6,7 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-stray_render = {path="../stray_render", optional = true}
-stray_ecs = {path="../stray_ecs", optional = true}
-stray_material = {path="../stray_material", optional = true}
+stray_render = {path="../stray_render"}
+stray_material = {path="../stray_material"}
 stray_api = {path="../stray_api"}
+stray_texture = {path="../stray_texture"}
+stray_scene = {path="../stray_scene"}

@@ -1,11 +1,21 @@
 use stray_render::StrayBackend;
 
-#[derive(Default)]
 pub struct Settings{
     pub always_on_top: bool,
     pub title: String,
     pub resizable: bool,
     pub backend: StrayBackend
+}
+
+impl Default for Settings{
+    fn default() -> Self {
+        Self { 
+            always_on_top: false, 
+            title: "Stray App".to_string(), 
+            resizable: true, 
+            backend: StrayBackend::All 
+        }
+    }
 }
 
 impl Settings{

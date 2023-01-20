@@ -1,6 +1,3 @@
-use winit::window::Window;
-
-use crate::RawVertex;
 
 pub enum StrayBackend{
     Vulkan,
@@ -15,9 +12,3 @@ impl Default for StrayBackend{
     }
 }
 
-pub trait Renderer{
-    fn init(backend: StrayBackend, window: &Window) -> Self;
-    fn redraw(&self);
-    fn set_vertex_buffer(&mut self, vertices: &[RawVertex]);
-    fn set_indices_buffer(&mut self, indices: &[u16]);
-}
