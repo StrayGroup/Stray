@@ -53,7 +53,12 @@ impl ScreenDraw{
 
     pub fn create_vertex_buffer(&self, device: &Device, config: &SurfaceConfiguration) -> StrayVertexBuffer{
         let raw_size = [config.width as i32,config.height as i32];
-        let vertices: Vec<RawVertex> = self.vertices.iter().map(|x| x.to_raw(raw_size, self.transform)).collect();
+        let true_transform = Transform2D::new(
+            self.transform.position.x/(config.width as f32), 
+            self.transform.position.y/(config.height as f32), 
+            self.transform.rotation
+        );
+        let vertices: Vec<RawVertex> = self.vertices.iter().map(|x| x.to_raw(raw_size, true_transform)).collect();
         let vertex_buffer = device.create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
                 label: Some("Vertex Buffer"),

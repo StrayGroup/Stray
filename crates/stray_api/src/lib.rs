@@ -27,6 +27,7 @@ impl Stray{
         StrayBuilder::new()
     }
     pub fn run(mut self) {
+        self.global_resources.insert(InputEvent::NONE);
         let mut r_schedule = self.render_schedule.unwrap();
         let mut g_schedule = self.global_schedule.unwrap();
         match initialize_render(&mut self.render_resources, &self.window, StrayBackend::All){
@@ -42,16 +43,10 @@ impl Stray{
                     ref event,
                     window_id,
                 } if window_id == self.window.id() => match event {
-                    WindowEvent::CloseRequested
-                    | WindowEvent::KeyboardInput {
-                        input:
-                            KeyboardInput {
-                                state: ElementState::Pressed,
-                                virtual_keycode: Some(VirtualKeyCode::Escape),
-                                ..
-                            },
-                        ..
-                    } => *control_flow = ControlFlow::Exit,
+                    WindowEvent::KeyboardInput { device_id, input, is_synthetic } => {
+                        self.global_resources.insert(InputEvent::from(input));
+                    },
+                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::Resized(physical_size) => {
                         resize(&self.render_resources, *physical_size);
                     }
@@ -66,6 +61,7 @@ impl Stray{
                 Event::MainEventsCleared => {
                     r_schedule.execute(&mut self.world, &mut self.render_resources);
                     g_schedule.execute(&mut self.world, &mut self.global_resources);
+                    self.global_resources.insert(InputEvent::NONE);
                 }
                 _ => {}
         });
@@ -159,5 +155,38 @@ pub fn resize(res: &Resources, new_size: winit::dpi::PhysicalSize<u32>) {
         res.get_mut::<EngineData<SurfaceConfiguration>>().unwrap().0.width = new_size.width;
         res.get_mut::<EngineData<SurfaceConfiguration>>().unwrap().0.height = new_size.height;
         res.get::<EngineData<Surface>>().unwrap().0.configure(&res.get::<EngineData<Device>>().unwrap().0, &res.get::<EngineData<SurfaceConfiguration>>().unwrap().0);
+    }
+}
+
+
+pub type Key = VirtualKeyCode;
+pub enum InputEvent{
+    PRESSED(Key),
+    RELEASED(Key),
+    NONE
+}
+
+impl InputEvent{
+    pub fn is_pressed(&self, vk: Key) -> bool{
+        match self{
+            Self::PRESSED(key) if key == &vk =>  true,
+            _ => false
+        }
+    }
+
+    pub fn is_released(&self, vk: Key) -> bool{
+        match self{
+            Self::RELEASED(key) if key == &vk =>  true,
+            _ => false
+        }
+    }
+}
+
+impl From<&KeyboardInput> for InputEvent{
+    fn from(value: &KeyboardInput) -> Self {
+        match value.state{
+            ElementState::Pressed => Self::PRESSED(value.virtual_keycode.unwrap()),
+            ElementState::Released => Self::RELEASED(value.virtual_keycode.unwrap())
+        }
     }
 }

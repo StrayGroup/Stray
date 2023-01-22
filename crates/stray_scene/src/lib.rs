@@ -28,7 +28,12 @@ impl Sprite{
             TextureVertex::new(-200, -200, 0.0, 1.0), TextureVertex::new(200, -200, 1.0, 1.0), TextureVertex::new(-200, 200, 0.0, 0.0), 
             TextureVertex::new(-200, 200, 0.0, 0.0), TextureVertex::new(200, -200, 1.0, 1.0 ), TextureVertex::new(200, 200, 1.0, 0.0),
         ];
-        let vertices: Vec<RawVertex> = vertices_data.iter().map(|x| x.to_raw(raw_size, transform)).collect();
+        let true_transform = Transform2D::new(
+            transform.position.x/(config.width as f32), 
+            transform.position.y/(config.height as f32), 
+            transform.rotation
+        );
+        let vertices: Vec<RawVertex> = vertices_data.iter().map(|x| x.to_raw(raw_size, &true_transform)).collect();
         let vertex_buffer = device.create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
                 label: Some("Vertex Buffer"),

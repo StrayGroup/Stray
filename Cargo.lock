@@ -989,6 +989,7 @@ dependencies = [
  "indexmap",
  "log",
  "num-traits",
+ "pp-rs",
  "rustc-hash",
  "spirv",
  "termcolor",
@@ -1289,6 +1290,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5da3b0203fd7ee5720aa0b5e790b591aa5d3f41c3ed2c34a3a393382198af2f7"
 
 [[package]]
+name = "pp-rs"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb458bb7f6e250e6eb79d5026badc10a3ebb8f9a15d1fff0f13d17c71f4d6dee"
+dependencies = [
+ "unicode-xid",
+]
+
+[[package]]
 name = "proc-macro-crate"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1349,11 +1359,10 @@ dependencies = [
 
 [[package]]
 name = "rayon"
-version = "1.6.0"
+version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e060280438193c554f654141c9ea9417886713b7acd75974c85b18a69a88e0b"
+checksum = "6db3a213adf02b3bcfd2d3846bb41cb22857d131789e01df434fb7e7bc0759b7"
 dependencies = [
- "crossbeam-deque",
  "either",
  "rayon-core",
 ]
@@ -1487,6 +1496,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "smaa"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6dcfff0d71ba0df57e47b557468f703a91efe3d22f703bf6b702dd9957423e3"
+dependencies = [
+ "naga",
+ "wgpu",
+]
+
+[[package]]
 name = "smallvec"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1549,6 +1568,8 @@ name = "stray_api"
 version = "0.1.0"
 dependencies = [
  "legion",
+ "rayon",
+ "smaa",
  "stray_render",
  "stray_scene",
  "stray_texture",
@@ -1578,6 +1599,7 @@ dependencies = [
  "bytemuck",
  "legion",
  "pollster",
+ "smaa",
  "stray_material",
  "stray_scene",
  "stray_texture",
@@ -1589,7 +1611,12 @@ dependencies = [
 name = "stray_scene"
 version = "0.1.0"
 dependencies = [
+ "bytemuck",
  "cgmath",
+ "image",
+ "stray_material",
+ "stray_texture",
+ "wgpu",
 ]
 
 [[package]]
