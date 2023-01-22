@@ -1,5 +1,5 @@
 use stray::prelude::*;
-use legion::*;
+use legion::system;
 
 
 #[system(for_each)]
@@ -13,7 +13,7 @@ fn draw(draw: &mut ScreenDraw){
         2, 1, 3
     ];
 
-    let color = Color{
+    let color = StrayColor{
         r: 255,
         g: 255,
         b: 100,

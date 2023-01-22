@@ -7,7 +7,7 @@ fn draw(draw: &mut ScreenDraw){
     let vertices = vec![
         Vertex::new(-500, -500), Vertex::new(500, -500), Vertex::new(-500, 500), 
     ];
-    let color = Color{
+    let color = StrayColor{
         r: 255,
         g: 255,
         b: 100,

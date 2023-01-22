@@ -1,8 +1,15 @@
-use wgpu::*;
+use wgpu::{*, util::DeviceExt};
 
 use stray_material::{
     StandardMaterial, 
-    Color
+};
+
+use stray_scene::{
+    StrayIndexBuffer,
+    StrayVertexBuffer,
+    RenderObject,
+    Vertex,
+    RawVertex
 };
 
 pub struct ScreenDraw{
@@ -30,54 +37,43 @@ impl ScreenDraw{
             v.material = material;
         }
     }
-}
 
-
-#[derive(Debug, Copy, Clone)]
-pub struct Vertex{
-    x: i32,
-    y: i32,
-    layer: i16,
-    material: StandardMaterial,
-}
-
-
-impl Vertex{
-    pub fn new(x: i32, y: i32) -> Self{
-        Self{x: x, y: y, layer: 0, material: StandardMaterial::new(Color::default())}
-    }
-
-    pub fn to_raw(&self, win_size: [i32;2]) -> RawVertex{
-        RawVertex { 
-            position: [
-                self.x as f32/win_size[0] as f32, 
-                self.y as f32/win_size[1] as f32, 
-                self.layer as f32], 
-            color: [
-                (((self.material.color.r / 255) as f32 + 0.055) / 1.055).powf(2.4), 
-                (((self.material.color.g / 255) as f32 + 0.055) / 1.055).powf(2.4), 
-                (((self.material.color.b / 255) as f32 + 0.055) / 1.055).powf(2.4), 
-                self.material.color.a]
+    pub fn create_indices_buffer(&self, device: &Device) -> StrayIndexBuffer{
+        let index_buffer = device.create_buffer_init(
+            &wgpu::util::BufferInitDescriptor {
+                label: Some("Indices Buffer"),
+                contents: bytemuck::cast_slice(self.indices.as_slice()),
+                usage: wgpu::BufferUsages::INDEX,
             }
+        );
+        let index_buffer_len = self.indices.len() as u32;
+        StrayIndexBuffer(Some(index_buffer), index_buffer_len)
     }
-}
 
-#[repr(C)]
-#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct RawVertex{
-    position: [f32;3],
-    color: [f32;4],
-}
-
-impl RawVertex{
-    const ATTRIBS: [VertexAttribute; 2] =
-        vertex_attr_array![0 => Float32x3, 1 => Float32x4];
-
-    pub fn desc<'a>() -> VertexBufferLayout<'a> {
-        VertexBufferLayout {
-            array_stride: std::mem::size_of::<Self>() as BufferAddress,
-            step_mode: VertexStepMode::Vertex,
-            attributes: &Self::ATTRIBS,
+    pub fn create_vertex_buffer(&self, device: &Device, config: &SurfaceConfiguration) -> StrayVertexBuffer{
+        let raw_size = [config.width as i32,config.height as i32];
+        let vertices: Vec<RawVertex> = self.vertices.iter().map(|x| x.to_raw(raw_size)).collect();
+        let vertex_buffer = device.create_buffer_init(
+            &wgpu::util::BufferInitDescriptor {
+                label: Some("Vertex Buffer"),
+                contents: bytemuck::cast_slice(vertices.as_slice()),
+                usage: wgpu::BufferUsages::VERTEX,
+            }
+        );
+        let vertex_buffer_len = self.vertices.len() as u32;
+        StrayVertexBuffer(Some(vertex_buffer), vertex_buffer_len)
+    }
+    pub fn to_render_object(&self, device: &Device, config: &SurfaceConfiguration) -> RenderObject{
+        let vertex = self.create_vertex_buffer(&device, &config);
+        let index = self.create_indices_buffer(&device);
+        RenderObject{
+            type_id: 0,
+            vertex: Some(vertex),
+            index: Some(index),
+            bind_group: None
         }
     }
 }
+
+
+

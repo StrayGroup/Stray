@@ -1,17 +1,17 @@
 
 #[derive(Debug, Clone, Copy)]
 pub struct StandardMaterial{
-    pub color: Color
+    pub color: StrayColor
 }
 
 impl StandardMaterial{
-    pub fn new(color: Color) -> Self{
+    pub fn new(color: StrayColor) -> Self{
         Self{color}
     }
 }
 
 #[derive(Default, Debug, Clone, Copy)]
-pub struct Color{
+pub struct StrayColor{
     pub r: i16,
     pub g: i16,
     pub b: i16,

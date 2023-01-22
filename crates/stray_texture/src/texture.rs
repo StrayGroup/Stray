@@ -1,27 +1,5 @@
 use image::*;
 
-
-// WIP
-
-pub struct TexturesStorage{
-    pub textures: Vec<(i32, StrayTexture)>
-}
-
-impl TexturesStorage{
-    pub fn with(id: i32, texture: StrayTexture) -> Self{
-        Self{textures: vec![(id, texture)]}
-    }
-
-    pub fn get_from_id(&self, id: i32) -> Option<&StrayTexture>{
-        for i in &self.textures{
-            if i.0 == id{
-                return Some(&i.1);
-            }
-        }
-        None
-    }
-}
-
 pub struct StrayTexture{
     rgba: RgbaImage,
     dimension: (u32,u32)
@@ -32,7 +10,7 @@ impl StrayTexture{
         Self{rgba,dimension}
     }
 
-    pub fn write_texture(&self, device: wgpu::Device, queue: wgpu::Queue, layout: wgpu::BindGroupLayout) -> wgpu::BindGroup{
+    pub fn write_texture(&self, device: &wgpu::Device, queue: &wgpu::Queue, layout: &wgpu::BindGroupLayout) -> wgpu::BindGroup{
         let texture_size = wgpu::Extent3d {
             width: self.dimension.0,
             height: self.dimension.1,
@@ -98,13 +76,5 @@ impl StrayTexture{
     }
 }
 
-pub fn load_texture(id: i32, resources: &mut legion::Resources, bytes: &[u8]){
-    let bytes = bytes;
-    let image = load_from_memory(bytes).unwrap();
-    let rgba = image.to_rgba8();
-    let dimensions = image.dimensions();
-    resources.get_mut::<TexturesStorage>().expect("Unintialized Texture storage").textures.append(&mut vec![(id, StrayTexture::with(rgba, dimensions))]);
-
-}
 
 

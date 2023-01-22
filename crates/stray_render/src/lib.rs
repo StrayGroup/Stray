@@ -13,7 +13,7 @@ use winit::{
     dpi::PhysicalSize
 };
 
-use stray_scene::EngineData;
+use stray_scene::*;
 
 mod render;
 mod draw;
@@ -23,41 +23,27 @@ pub use render::*;
 pub use draw::*;
 
 
-// For texture rendering WIP
-
-// fn set_bind_groups(textures: &Container<Sprite>, resources: Resources)  -> EngineData<Vec<BindGroup>>{
-//     let txt_storage = resources.get::<TexturesStorage>().unwrap();
-    
-//     for i in textures.0.iter(){
-//         let texture = match txt_storage.get_from_id(i.texture_id){
-//             Some(value) => value,
-//             None => {
-//                 eprintln!("Incorred texture id in sprite: {:?}", i);
-//                 std::process::exit(1);
-//             },
-//         };
-        
-//     }
-//     EngineData(vec![])
-// }
-
 #[system(for_each)]
 pub fn read_geometry(
-    draw_component: &ScreenDraw, 
-    #[resource] vertex: &mut EngineData<StrayVertexBuffer>,
-    #[resource] index: &mut EngineData<StrayIndicesBuffer>,
+    draw_component: &mut ScreenDraw, 
     #[resource] device: &EngineData<Device>,
     #[resource] config: &EngineData<SurfaceConfiguration>,
+    #[resource] render_query: &mut RenderQuery
 ) {
-    let raw_size = [config.0.width as i32,config.0.height as i32];
-    let vertex_array: &Vec<RawVertex> = &draw_component.vertices.iter().map(|x| x.to_raw(raw_size)).collect();
-    let vertex_buffer = set_vertex_buffer(&device.0, &vertex_array.as_slice());
-    vertex.set(vertex_buffer);
-    let index_array: &Vec<u16> = &draw_component.indices;
-    let index_buffer = set_indices_buffer(&device.0, &index_array.as_slice());
-    index.set(index_buffer);
+    render_query.0.push(draw_component.to_render_object(&device.0, &config.0));
 }
 
+#[system(for_each)]
+pub fn read_sprites(
+    sprite: &Sprite,
+    #[resource] pipeline: &StrayTextureRenderPipeline,
+    #[resource] device: &EngineData<Device>,
+    #[resource] config: &EngineData<SurfaceConfiguration>,
+    #[resource] queue: &EngineData<Queue>,
+    #[resource] render_query: &mut RenderQuery
+){
+    render_query.0.push(sprite.to_render_object(&device.0, &config.0, &queue.0, &pipeline.1));
+}
 
 
 // Render redraw as legion system
@@ -67,19 +53,17 @@ pub fn read_geometry(
 pub fn redraw(
     #[resource] surface: &EngineData<Surface>, 
     #[resource] device: &EngineData<Device>,
-    #[resource] pipeline: &EngineData<RenderPipeline>,
-    #[resource] vertex: &EngineData<StrayVertexBuffer>,
-    #[resource] index: &EngineData<StrayIndicesBuffer>,
+    #[resource] shape_pipeline: &StrayShapeRenderPipeline,
+    #[resource] texture_pipeline: &StrayTextureRenderPipeline,
     #[resource] queue: &EngineData<Queue>,
+    #[resource] render_query: &RenderQuery,
 ) {
     let output = surface.0.get_current_texture().unwrap();
     let view = output.texture.create_view(&TextureViewDescriptor::default());
     let mut encoder = device.0.create_command_encoder(&CommandEncoderDescriptor {
         label: Some("Render Encoder"),
     });
-    let v_buff = &vertex.0.0.as_ref().unwrap();
-    let i_buff = &index.0.0.as_ref().unwrap();
-    {
+    for entry in &render_query.0{
         let mut render_pass = encoder.begin_render_pass(&RenderPassDescriptor {
             label: Some("Render Pass"),
             color_attachments: &[Some(RenderPassColorAttachment {
@@ -96,14 +80,31 @@ pub fn redraw(
                 },
             })],
             depth_stencil_attachment: None,
-            });
-        render_pass.set_pipeline(&pipeline.0);
-        render_pass.set_vertex_buffer(0, v_buff.slice(..));
-        if index.0.1 > 0{
-            render_pass.set_index_buffer(i_buff.slice(..), IndexFormat::Uint16);
-            render_pass.draw_indexed(0..index.0.1, 0, 0..1); 
-        } else {
-            render_pass.draw(0..vertex.0.1,0..1);
+        });
+        if &entry.type_id == &0{
+            let vertex = entry.get_vertex();
+            let index = entry.get_index();
+            let v_buff = vertex.0.as_ref().unwrap();
+            let i_buff = index.0.as_ref().unwrap();
+
+            render_pass.set_pipeline(&shape_pipeline.0);
+            render_pass.set_vertex_buffer(0, v_buff.slice(..));
+            if index.1 > 0{
+                render_pass.set_index_buffer(i_buff.slice(..), IndexFormat::Uint16);
+                render_pass.draw_indexed(0..index.1, 0, 0..1); 
+            } else {
+                render_pass.draw(0..vertex.1,0..1);
+            }
+        }
+
+        if &entry.type_id == &1{
+            let vertex = entry.get_vertex();
+            let v_buff = vertex.0.as_ref().unwrap();
+            render_pass.set_pipeline(&texture_pipeline.0);
+            render_pass.set_bind_group(0, &entry.bind_group.as_ref().unwrap(), &[]);
+            render_pass.set_vertex_buffer(0, v_buff.slice(..));
+            render_pass.draw(0..vertex.1, 0..1);
+
         }
         
     }
@@ -112,47 +113,6 @@ pub fn redraw(
     output.present();
 }    
 
-// Wgpu indices buffer wrapper for resource need
-
-pub struct StrayIndicesBuffer(Option<Buffer>,u32);
-
-
-// Set indices buffer, returns Engine Data 
-// because it cannot borrow mutable resources 
-// and immutable resources in the same time
-
-pub fn set_indices_buffer(device: &Device, indices: &[u16]) -> StrayIndicesBuffer{
-    let index_buffer = device.create_buffer_init(
-        &wgpu::util::BufferInitDescriptor {
-            label: Some("Indices Buffer"),
-            contents: bytemuck::cast_slice(indices),
-            usage: wgpu::BufferUsages::INDEX,
-        }
-    );
-    let index_buffer_len = indices.len() as u32;
-    StrayIndicesBuffer(Some(index_buffer), index_buffer_len)
-}
-
-// Wgpu vertex buffer wrapper for resource need
-
-pub struct StrayVertexBuffer(Option<Buffer>, u32);
-
-
-// Set vertex buffer, returns Engine Data 
-// because it cannot borrow mutable resources 
-// and immutable resources in the same time
-
-pub fn set_vertex_buffer(device: &Device, vertices: &[RawVertex]) -> StrayVertexBuffer{
-    let vertex_buffer = device.create_buffer_init(
-        &wgpu::util::BufferInitDescriptor {
-            label: Some("Vertex Buffer"),
-            contents: bytemuck::cast_slice(vertices),
-            usage: wgpu::BufferUsages::VERTEX,
-        }
-    );
-    let vertex_buffer_len = vertices.len() as u32;
-    StrayVertexBuffer(Some(vertex_buffer), vertex_buffer_len)
-}
 
 
 // Initializing render and write data into resources as Engine Data
@@ -181,13 +141,14 @@ pub fn initialize_render(res: &mut Resources, window: &Window, backend: StrayBac
         format: surface.get_supported_formats(&adapter)[0],
         width: window_size.width,
         height: window_size.height,
-        present_mode: PresentMode::Fifo,
+        present_mode: PresentMode::Mailbox,
         alpha_mode: CompositeAlphaMode::Auto,
     };
 
     // Pipeline creation, see pipeline/mod.rs
-    let pipeline = create_pipeline(&device, &config);
-
+    let shape_pipeline = create_shape_pipeline(&device, &config);
+    let texture_pipeline = create_texture_pipeline(&device, &config);
+    
     surface.configure(&device, &config);
     println!("Using {} ({:?})", adapter.get_info().name, adapter.get_info().backend);
 
@@ -198,9 +159,11 @@ pub fn initialize_render(res: &mut Resources, window: &Window, backend: StrayBac
     res.insert(EngineData(device));
     res.insert(EngineData(queue));
     res.insert(EngineData(config));
-    res.insert(EngineData(pipeline));
-    res.insert(EngineData(StrayIndicesBuffer(None, 0)));
+    res.insert(EngineData(StrayIndexBuffer(None, 0)));
     res.insert(EngineData(StrayVertexBuffer(None, 0)));
+    res.insert(shape_pipeline);
+    res.insert(texture_pipeline);
+    res.insert(RenderQuery(vec![]));
 
     Ok(())
 }

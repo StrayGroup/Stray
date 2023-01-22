@@ -13,8 +13,10 @@ mod settings;
 use settings::*;
 
 pub struct Stray{
-    schedule: Option<Schedule>,
-    resources: Resources,
+    global_schedule: Option<Schedule>,
+    render_schedule: Option<Schedule>,
+    global_resources: Resources,
+    render_resources: Resources,
     window: Window,
     event_loop: EventLoop<()>,
     world: World,
@@ -25,8 +27,10 @@ impl Stray{
         StrayBuilder::new()
     }
     pub fn run(mut self) {
-        let mut g_schedule = self.schedule.unwrap();
-        match initialize_render(&mut self.resources, &self.window, StrayBackend::All){
+        let mut r_schedule = self.render_schedule.unwrap();
+        let mut g_schedule = self.global_schedule.unwrap();
+        let thread_pool = rayon::ThreadPoolBuilder::new().build().unwrap();
+        match initialize_render(&mut self.render_resources, &self.window, StrayBackend::All){
             Err(e) => {
                 eprintln!("Render Error: {}", e);
                 std::process::exit(1);
@@ -50,18 +54,19 @@ impl Stray{
                         ..
                     } => *control_flow = ControlFlow::Exit,
                     WindowEvent::Resized(physical_size) => {
-                        resize(&self.resources, *physical_size);
+                        resize(&self.render_resources, *physical_size);
                     }
                     WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                        resize(&self.resources, **new_inner_size);
+                        resize(&self.render_resources, **new_inner_size);
+                        
                     }
                     _ => {}
                 },
                 Event::RedrawRequested(_) => {
-                    
+                    r_schedule.execute_in_thread_pool(&mut self.world, &mut self.render_resources, &thread_pool);
                 },
                 Event::MainEventsCleared => {
-                    g_schedule.execute(&mut self.world, &mut self.resources);
+                    g_schedule.execute_in_thread_pool(&mut self.world, &mut self.global_resources, &thread_pool);
                 }
                 _ => {}
         });
@@ -69,29 +74,34 @@ impl Stray{
 }
 
 pub struct StrayBuilder{
-    schedule: systems::Builder,
+    render_schedule: systems::Builder,
+    global_schedule: systems::Builder,
     stray: Stray,
     settings: Settings,
 }
 
 impl StrayBuilder{
     pub fn new() -> Self{
-        let schedule = Schedule::builder();
+        let global_schedule = Schedule::builder();
+        let render_schedule = Schedule::builder();
         let settings = Settings::default();
         let event_loop = EventLoop::new();
         let window = WindowBuilder::new()
             .with_inner_size(PhysicalSize::new(600, 600))
             .build(&event_loop).unwrap();
         let stray = Stray { 
-            schedule: None,  
-            resources: Resources::default(), 
+            global_schedule: None,  
+            render_schedule: None,
+            global_resources: Resources::default(), 
+            render_resources: Resources::default(),
             window: window, 
             event_loop: event_loop, 
             world: World::default() 
         };
 
         Self { 
-            schedule, 
+            render_schedule, 
+            global_schedule,
             stray,
             settings,
         }
@@ -105,7 +115,7 @@ impl StrayBuilder{
     where
         S: systems::ParallelRunnable + 'static
     {
-        self.schedule.add_system(system);
+        self.global_schedule.add_system(system);
         self
     }
 
@@ -121,19 +131,21 @@ impl StrayBuilder{
     where
         T: 'static
     {
-        self.stray.resources.insert(res);
+        self.stray.global_resources.insert(res);
         self
     }
 
     pub fn init_systems(&mut self){
-        self.schedule.add_system(read_geometry_system());
-        self.schedule.add_system(redraw_system());
+        self.render_schedule.add_system(read_geometry_system());
+        self.render_schedule.add_system(redraw_system());
+        self.render_schedule.add_system(read_sprites_system());
     }
     
     pub fn build(mut self) -> Stray{
         self.init_systems();
         parse_settings(&self.settings,&self.stray.window);
-        self.stray.schedule = Some(self.schedule.build());
+        self.stray.global_schedule = Some(self.global_schedule.build());
+        self.stray.render_schedule = Some(self.render_schedule.build());
         self.stray
     }
 
