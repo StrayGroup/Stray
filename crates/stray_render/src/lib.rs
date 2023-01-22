@@ -1,7 +1,4 @@
-use wgpu::{
-    *,
-    util::DeviceExt
-};
+use wgpu::*;
 
 use legion::{
     Resources, 
@@ -10,7 +7,6 @@ use legion::{
 use pollster::block_on;
 use winit::{
     window::Window, 
-    dpi::PhysicalSize
 };
 
 use stray_scene::*;
@@ -64,7 +60,7 @@ pub fn redraw(
     let mut encoder = device.0.create_command_encoder(&CommandEncoderDescriptor {
         label: Some("Render Encoder"),
     });
-    for entry in render_query.0.iter(){
+    {
         let mut render_pass = encoder.begin_render_pass(&RenderPassDescriptor {
             label: Some("Render Pass"),
             color_attachments: &[Some(RenderPassColorAttachment {
@@ -82,33 +78,35 @@ pub fn redraw(
             })],
             depth_stencil_attachment: None,
         });
-        if &entry.type_id == &0{
-            let vertex = entry.get_vertex();
-            let index = entry.get_index();
-            let v_buff = vertex.0.as_ref().unwrap();
-            let i_buff = index.0.as_ref().unwrap();
+        for entry in render_query.0.iter(){
+            if &entry.type_id == &0{
+                let vertex = entry.get_vertex();
+                let index = entry.get_index();
+                let v_buff = vertex.0.as_ref().unwrap();
+                let i_buff = index.0.as_ref().unwrap();
 
-            render_pass.set_pipeline(&shape_pipeline.0);
-            render_pass.set_vertex_buffer(0, v_buff.slice(..));
-            if index.1 > 0{
-                render_pass.set_index_buffer(i_buff.slice(..), IndexFormat::Uint16);
-                render_pass.draw_indexed(0..index.1, 0, 0..1); 
-            } else {
-                render_pass.draw(0..vertex.1,0..1);
+                render_pass.set_pipeline(&shape_pipeline.0);
+                render_pass.set_vertex_buffer(0, v_buff.slice(..));
+                if index.1 > 0{
+                    render_pass.set_index_buffer(i_buff.slice(..), IndexFormat::Uint16);
+                    render_pass.draw_indexed(0..index.1, 0, 0..1); 
+                } else {
+                    render_pass.draw(0..vertex.1,0..1);
+                }
+                
+            }
+
+            if &entry.type_id == &1{
+                let vertex = entry.get_vertex();
+                let v_buff = vertex.0.as_ref().unwrap();
+                render_pass.set_pipeline(&texture_pipeline.0);
+                render_pass.set_bind_group(0, &entry.bind_group.as_ref().unwrap(), &[]);
+                render_pass.set_vertex_buffer(0, v_buff.slice(..));
+                render_pass.draw(0..vertex.1, 0..1);
+
             }
             
         }
-
-        if &entry.type_id == &1{
-            let vertex = entry.get_vertex();
-            let v_buff = vertex.0.as_ref().unwrap();
-            render_pass.set_pipeline(&texture_pipeline.0);
-            render_pass.set_bind_group(0, &entry.bind_group.as_ref().unwrap(), &[]);
-            render_pass.set_vertex_buffer(0, v_buff.slice(..));
-            render_pass.draw(0..vertex.1, 0..1);
-
-        }
-        
     }
     render_query.0.clear();
     queue.0.submit(std::iter::once(encoder.finish()));
