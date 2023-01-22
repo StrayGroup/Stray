@@ -12,12 +12,12 @@
 - **2D Renderer in WGPU**
 - **API which uses Legion ECS**
 - **Drawing system**
+- **Text Rendering**
 
 ## Nearby Planned Features:
 - **Physic Bodies which uses Rapier Engine**
 - **Texture Rendering**
 - **SMAA Support**
-- **Text Rendering**
 - **Camera System**
 
 ## Getting Started
