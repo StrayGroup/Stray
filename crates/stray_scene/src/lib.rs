@@ -7,7 +7,6 @@ use stray_material::*;
 
 pub struct Sprite{
     pub texture: StrayTexture,
-    pub local_position: Transform2D
 }
 
 impl Sprite{
@@ -15,15 +14,21 @@ impl Sprite{
         let image = load_from_memory(bytes).unwrap();
         let rgba = image.to_rgba8();
         let dimensions = image.dimensions();
-        Self { texture: StrayTexture::with(rgba, dimensions), local_position: Transform2D::new(0,0,0) }
+        Self { texture: StrayTexture::with(rgba, dimensions) }
     }
-    pub fn to_render_object(&self, device: &Device, config: &SurfaceConfiguration, queue: &Queue, layout: &BindGroupLayout) -> RenderObject{
+    pub fn to_render_object(&self, 
+        device: &Device, 
+        config: &SurfaceConfiguration, 
+        queue: &Queue, 
+        layout: &BindGroupLayout,
+        transform: &Transform2D
+    ) -> RenderObject{
         let raw_size = [config.width as i32,config.height as i32];
         let vertices_data = vec![
             TextureVertex::new(-200, -200, 0.0, 1.0), TextureVertex::new(200, -200, 1.0, 1.0), TextureVertex::new(-200, 200, 0.0, 0.0), 
             TextureVertex::new(-200, 200, 0.0, 0.0), TextureVertex::new(200, -200, 1.0, 1.0 ), TextureVertex::new(200, 200, 1.0, 0.0),
         ];
-        let vertices: Vec<RawVertex> = vertices_data.iter().map(|x| x.to_raw(raw_size)).collect();
+        let vertices: Vec<RawVertex> = vertices_data.iter().map(|x| x.to_raw(raw_size, transform)).collect();
         let vertex_buffer = device.create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
                 label: Some("Vertex Buffer"),
@@ -37,22 +42,32 @@ impl Sprite{
             type_id: 1, 
             vertex: Some(StrayVertexBuffer(Some(vertex_buffer), vertex_buffer_len)), 
             index: None, 
-            bind_group: Some(bind_group) 
+            bind_group: Some(bind_group),
         }
     }
 }
 
 #[derive(Debug, Copy, Clone)]
 pub struct Transform2D{
-    pub position: Vector2<i32>,
-    pub rotation: Deg<i32>
+    pub position: Vector2<f32>,
+    pub rotation: f32
 }
 
 impl Transform2D{
-    pub fn new(x: i32, y: i32, rotation: i32) -> Self {
-        Self { position: Vector2::new(x, y), rotation: Deg(rotation)}
+    pub fn new(x: f32, y: f32, rotation: f32) -> Self {
+        Self { position: Vector2::new(x, y), rotation: rotation}
+    }
+
+    pub fn to_raw(&self) -> [[f32;4];4]{
+        let rotation: cgmath::Quaternion<f32> = cgmath::Quaternion::from(cgmath::Euler {
+            x: cgmath::Deg(0.0),
+            y: cgmath::Deg(0.0),
+            z: Deg(self.rotation),
+        });
+        (cgmath::Matrix4::from_translation(Vector3::new(self.position.x, self.position.y, 0.0)) * cgmath::Matrix4::from(rotation)).into()
     }
 }
+
 
 // Wgpu indices buffer wrapper for resource need
 pub struct StrayIndexBuffer(pub Option<Buffer>,pub u32);  
@@ -71,7 +86,7 @@ pub struct RenderObject{
     pub type_id: i32,
     pub vertex: Option<StrayVertexBuffer>,
     pub index: Option<StrayIndexBuffer>,
-    pub bind_group: Option<BindGroup>
+    pub bind_group: Option<BindGroup>,
 }
 
 impl RenderObject{
@@ -116,7 +131,7 @@ impl TextureVertex{
         Self{x: x, y: y, layer: 0, tex_coordx: tex_coordx, tex_coordy: tex_coordy, material: StandardMaterial::new(StrayColor::default())}
     }
 
-    pub fn to_raw(&self, win_size: [i32;2]) -> RawVertex{
+    pub fn to_raw(&self, win_size: [i32;2], transform: &Transform2D) -> RawVertex{
         RawVertex { 
             position: [
                 self.x as f32/win_size[0] as f32, 
@@ -131,7 +146,8 @@ impl TextureVertex{
                 (((self.material.color.g / 255) as f32 + 0.055) / 1.055).powf(2.4), 
                 (((self.material.color.b / 255) as f32 + 0.055) / 1.055).powf(2.4), 
                 self.material.color.a
-            ]
+            ],
+            model: transform.to_raw()
 
 
             }
@@ -143,6 +159,7 @@ pub struct Vertex{
     x: i32,
     y: i32,
     layer: i16,
+    
     pub material: StandardMaterial,
 }
 
@@ -151,7 +168,7 @@ impl Vertex{
         Self{x: x, y: y, layer: 0, material: StandardMaterial::new(StrayColor::default())}
     }
 
-    pub fn to_raw(&self, win_size: [i32;2]) -> RawVertex{
+    pub fn to_raw(&self, win_size: [i32;2], transform: Transform2D) -> RawVertex{
         RawVertex { 
             position: [
                 self.x as f32/win_size[0] as f32, 
@@ -166,7 +183,8 @@ impl Vertex{
                 (((self.material.color.g / 255) as f32 + 0.055) / 1.055).powf(2.4), 
                 (((self.material.color.b / 255) as f32 + 0.055) / 1.055).powf(2.4), 
                 self.material.color.a
-            ]
+            ],
+            model: transform.to_raw()
 
 
             }
@@ -179,11 +197,21 @@ pub struct RawVertex{
     position: [f32;3],
     tex_coords: [f32;2],
     color: [f32;4],
+    model: [[f32;4];4]
 }
 
 impl RawVertex{
-    const ATTRIBS: [VertexAttribute; 3] =
-        vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x4];
+    const ATTRIBS: [VertexAttribute; 7] =
+        vertex_attr_array![
+            0 => Float32x3, 
+            1 => Float32x2, 
+            2 => Float32x4, 
+            // Matrix
+            3 => Float32x4,
+            4 => Float32x4,
+            5 => Float32x4,
+            6 => Float32x4
+        ];
 
     pub fn desc<'a>() -> VertexBufferLayout<'a> {
         VertexBufferLayout {

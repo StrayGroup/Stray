@@ -35,6 +35,7 @@ pub fn read_geometry(
 
 #[system(for_each)]
 pub fn read_sprites(
+    transform: &Transform2D,
     sprite: &Sprite,
     #[resource] pipeline: &StrayTextureRenderPipeline,
     #[resource] device: &EngineData<Device>,
@@ -42,7 +43,7 @@ pub fn read_sprites(
     #[resource] queue: &EngineData<Queue>,
     #[resource] render_query: &mut RenderQuery
 ){
-    render_query.0.push(sprite.to_render_object(&device.0, &config.0, &queue.0, &pipeline.1));
+    render_query.0.push(sprite.to_render_object(&device.0, &config.0, &queue.0, &pipeline.1, transform));
 }
 
 
@@ -56,14 +57,14 @@ pub fn redraw(
     #[resource] shape_pipeline: &StrayShapeRenderPipeline,
     #[resource] texture_pipeline: &StrayTextureRenderPipeline,
     #[resource] queue: &EngineData<Queue>,
-    #[resource] render_query: &RenderQuery,
+    #[resource] render_query: &mut RenderQuery,
 ) {
     let output = surface.0.get_current_texture().unwrap();
     let view = output.texture.create_view(&TextureViewDescriptor::default());
     let mut encoder = device.0.create_command_encoder(&CommandEncoderDescriptor {
         label: Some("Render Encoder"),
     });
-    for entry in &render_query.0{
+    for entry in render_query.0.iter(){
         let mut render_pass = encoder.begin_render_pass(&RenderPassDescriptor {
             label: Some("Render Pass"),
             color_attachments: &[Some(RenderPassColorAttachment {
@@ -95,6 +96,7 @@ pub fn redraw(
             } else {
                 render_pass.draw(0..vertex.1,0..1);
             }
+            
         }
 
         if &entry.type_id == &1{
@@ -108,7 +110,7 @@ pub fn redraw(
         }
         
     }
-    
+    render_query.0.clear();
     queue.0.submit(std::iter::once(encoder.finish()));
     output.present();
 }    

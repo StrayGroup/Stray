@@ -29,7 +29,6 @@ impl Stray{
     pub fn run(mut self) {
         let mut r_schedule = self.render_schedule.unwrap();
         let mut g_schedule = self.global_schedule.unwrap();
-        let thread_pool = rayon::ThreadPoolBuilder::new().build().unwrap();
         match initialize_render(&mut self.render_resources, &self.window, StrayBackend::All){
             Err(e) => {
                 eprintln!("Render Error: {}", e);
@@ -63,10 +62,10 @@ impl Stray{
                     _ => {}
                 },
                 Event::RedrawRequested(_) => {
-                    r_schedule.execute_in_thread_pool(&mut self.world, &mut self.render_resources, &thread_pool);
                 },
                 Event::MainEventsCleared => {
-                    g_schedule.execute_in_thread_pool(&mut self.world, &mut self.global_resources, &thread_pool);
+                    r_schedule.execute(&mut self.world, &mut self.render_resources);
+                    g_schedule.execute(&mut self.world, &mut self.global_resources);
                 }
                 _ => {}
         });

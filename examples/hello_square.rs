@@ -3,7 +3,7 @@ use legion::system;
 
 
 #[system(for_each)]
-fn draw(draw: &mut ScreenDraw){
+fn draw(draw: &mut ScreenDraw){  
     let vertices = vec![
         Vertex::new(-500, -500), Vertex::new(500, -500), Vertex::new(-500, 500), Vertex::new(500, 500)
     ];

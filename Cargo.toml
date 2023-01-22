@@ -15,11 +15,3 @@ members = ["crates/*"]
 stray_internal = {path = "crates/stray_internal"}
 legion = "0.4.0"
 
-
-[[example]]
-name = "hello_triangle"
-path = "examples/hello_triangle.rs"
-
-[[example]]
-name = "hello_square"
-path = "examples/hello_square.rs"

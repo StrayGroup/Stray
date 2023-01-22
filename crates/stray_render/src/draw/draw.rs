@@ -9,10 +9,11 @@ use stray_scene::{
     StrayVertexBuffer,
     RenderObject,
     Vertex,
-    RawVertex
+    RawVertex, Transform2D
 };
 
 pub struct ScreenDraw{
+    pub transform: Transform2D,
     pub vertices: Vec<Vertex>,
     pub indices: Vec<u16>,
     pub material: Option<StandardMaterial>,
@@ -20,7 +21,7 @@ pub struct ScreenDraw{
 
 impl ScreenDraw{
     pub fn init() -> Self{
-        Self{vertices: vec![], indices: vec![], material: None}
+        Self{transform: Transform2D::new(0.0, 0.0, 0.0),vertices: vec![], indices: vec![], material: None}
     }
 
     pub fn set_vertices(&mut self, vertices: Vec<Vertex> ){
@@ -52,7 +53,7 @@ impl ScreenDraw{
 
     pub fn create_vertex_buffer(&self, device: &Device, config: &SurfaceConfiguration) -> StrayVertexBuffer{
         let raw_size = [config.width as i32,config.height as i32];
-        let vertices: Vec<RawVertex> = self.vertices.iter().map(|x| x.to_raw(raw_size)).collect();
+        let vertices: Vec<RawVertex> = self.vertices.iter().map(|x| x.to_raw(raw_size, self.transform)).collect();
         let vertex_buffer = device.create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
                 label: Some("Vertex Buffer"),
