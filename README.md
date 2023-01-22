@@ -12,13 +12,13 @@
 - **2D Renderer in WGPU**
 - **API which uses Legion ECS**
 - **Drawing system**
+- **Texture Rendering**
 
 ## Nearby Planned Features:
 - **Physic Bodies which uses Rapier Engine**
-- **Texture Rendering**
 - **SMAA Support**
-- **Text Rendering**
 - **Camera System**
+- **Text Rendering**
 
 ## Getting Started
 To draw a window, use:
