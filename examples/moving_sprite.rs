@@ -21,7 +21,7 @@ fn main(){
     Stray::new()
         .push((
             Transform2D::new(0.0, 0.0, 0.0),
-            Sprite::new(include_bytes!("sprite2.png"))
+            Sprite::new(include_bytes!("sprite.png"))
         ))
         .add_system(rotating_sprite_system())
         .build()
