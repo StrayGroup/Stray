@@ -23,10 +23,12 @@ impl Sprite{
         layout: &BindGroupLayout,
         transform: &Transform2D
     ) -> RenderObject{
+        let th = self.texture.dimensions.1 as i32;
+        let tw = self.texture.dimensions.0 as i32;
         let raw_size = [config.width as i32,config.height as i32];
         let vertices_data = vec![
-            TextureVertex::new(-200, -200, 0.0, 1.0), TextureVertex::new(200, -200, 1.0, 1.0), TextureVertex::new(-200, 200, 0.0, 0.0), 
-            TextureVertex::new(-200, 200, 0.0, 0.0), TextureVertex::new(200, -200, 1.0, 1.0 ), TextureVertex::new(200, 200, 1.0, 0.0),
+            TextureVertex::new(-tw, -th, 0.0, 1.0), TextureVertex::new(tw, -th, 1.0, 1.0), TextureVertex::new(-tw, th, 0.0, 0.0), 
+            TextureVertex::new(-tw, th, 0.0, 0.0), TextureVertex::new(tw, -th, 1.0, 1.0 ), TextureVertex::new(tw, th, 1.0, 0.0),
         ];
         let true_transform = Transform2D::new(
             transform.position.x/(config.width as f32), 

@@ -2,18 +2,18 @@ use image::*;
 
 pub struct StrayTexture{
     rgba: RgbaImage,
-    dimension: (u32,u32)
+    pub dimensions: (u32,u32)
 }
 
 impl StrayTexture{
-    pub fn with(rgba: RgbaImage, dimension: (u32,u32)) -> Self{
-        Self{rgba,dimension}
+    pub fn with(rgba: RgbaImage, dimensions: (u32,u32)) -> Self{
+        Self{rgba,dimensions}
     }
 
     pub fn write_texture(&self, device: &wgpu::Device, queue: &wgpu::Queue, layout: &wgpu::BindGroupLayout) -> wgpu::BindGroup{
         let texture_size = wgpu::Extent3d {
-            width: self.dimension.0,
-            height: self.dimension.1,
+            width: self.dimensions.0,
+            height: self.dimensions.1,
             depth_or_array_layers: 1,
         };
         let diffuse_texture = device.create_texture(
@@ -37,8 +37,8 @@ impl StrayTexture{
             &self.rgba,
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: std::num::NonZeroU32::new(4 * self.dimension.0),
-                rows_per_image: std::num::NonZeroU32::new(self.dimension.1),
+                bytes_per_row: std::num::NonZeroU32::new(4 * self.dimensions.0),
+                rows_per_image: std::num::NonZeroU32::new(self.dimensions.1),
             },
             texture_size,
         );

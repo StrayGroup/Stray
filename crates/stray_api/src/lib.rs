@@ -20,6 +20,7 @@ pub struct Stray{
     window: Window,
     event_loop: EventLoop<()>,
     world: World,
+    settings: Settings
 }
 
 impl Stray{
@@ -28,6 +29,7 @@ impl Stray{
     }
     pub fn run(mut self) {
         self.global_resources.insert(InputEvent::NONE);
+        self.global_resources.insert(self.settings);
         let mut r_schedule = self.render_schedule.unwrap();
         let mut g_schedule = self.global_schedule.unwrap();
         match initialize_render(&mut self.render_resources, &self.window, StrayBackend::All){
@@ -84,6 +86,7 @@ impl StrayBuilder{
         let window = WindowBuilder::new()
             .with_inner_size(PhysicalSize::new(600, 600))
             .build(&event_loop).unwrap();
+        
         let stray = Stray { 
             global_schedule: None,  
             render_schedule: None,
@@ -91,7 +94,8 @@ impl StrayBuilder{
             render_resources: Resources::default(),
             window: window, 
             event_loop: event_loop, 
-            world: World::default() 
+            world: World::default(),
+            settings: Settings::default()
         };
 
         Self { 
@@ -103,6 +107,12 @@ impl StrayBuilder{
     }
     pub fn with_title(mut self, title: &str) -> Self{
         self.settings.title = title.to_string();
+        self
+    }
+
+    pub fn with_size(mut self, width: u32, height: u32) -> Self{
+        self.settings.width = width;
+        self.settings.height = height;
         self
     }
 
@@ -139,6 +149,7 @@ impl StrayBuilder{
     pub fn build(mut self) -> Stray{
         self.init_systems();
         parse_settings(&self.settings,&self.stray.window);
+        self.stray.settings = self.settings;
         self.stray.global_schedule = Some(self.global_schedule.build());
         self.stray.render_schedule = Some(self.render_schedule.build());
         self.stray
