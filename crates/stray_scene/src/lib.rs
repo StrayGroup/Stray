@@ -23,8 +23,8 @@ impl Sprite{
         layout: &BindGroupLayout,
         transform: &Transform2D
     ) -> RenderObject{
-        let th = self.texture.dimensions.1 as i32;
-        let tw = self.texture.dimensions.0 as i32;
+        let th = (self.texture.dimensions.1 as f32 * transform.scale) as i32 ;
+        let tw = (self.texture.dimensions.0 as f32 * transform.scale) as i32;
         let raw_size = [config.width as i32,config.height as i32];
         let vertices_data = vec![
             TextureVertex::new(-tw, -th, 0.0, 1.0), TextureVertex::new(tw, -th, 1.0, 1.0), TextureVertex::new(-tw, th, 0.0, 0.0), 
@@ -33,7 +33,8 @@ impl Sprite{
         let true_transform = Transform2D::new(
             transform.position.x/(config.width as f32), 
             transform.position.y/(config.height as f32), 
-            transform.rotation
+            transform.rotation,
+            transform.scale
         );
         let vertices: Vec<RawVertex> = vertices_data.iter().map(|x| x.to_raw(raw_size, &true_transform)).collect();
         let vertex_buffer = device.create_buffer_init(
@@ -57,12 +58,13 @@ impl Sprite{
 #[derive(Debug, Copy, Clone)]
 pub struct Transform2D{
     pub position: Vector2<f32>,
-    pub rotation: f32
+    pub rotation: f32,
+    pub scale: f32,
 }
 
 impl Transform2D{
-    pub fn new(x: f32, y: f32, rotation: f32) -> Self {
-        Self { position: Vector2::new(x, y), rotation: rotation}
+    pub fn new(x: f32, y: f32, rotation: f32,scale: f32) -> Self {
+        Self { position: Vector2::new(x, y), rotation: rotation, scale: scale}
     }
 
     pub fn to_raw(&self) -> [[f32;4];4]{
