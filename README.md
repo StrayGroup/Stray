@@ -11,8 +11,9 @@
 ## Features:
 - **2D Renderer in WGPU**
 - **API which uses Legion ECS**
-- **Drawing system**
+- **Drawing System**
 - **Texture Rendering**
+- **Input System**
 
 ## Nearby Planned Features:
 - **Physic Bodies which uses Rapier Engine**
