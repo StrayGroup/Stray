@@ -4,13 +4,13 @@ use wgpu::{Surface, Device, SurfaceConfiguration};
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
-    window::{WindowBuilder, Window}, dpi::PhysicalSize,
+    window::{WindowBuilder, Window}, dpi::{PhysicalSize, PhysicalPosition},
 };
 
 use stray_render::*;
 
 mod settings;
-use settings::*;
+pub use settings::*;
 
 pub struct Stray{
     global_schedule: Option<Schedule>,
@@ -45,6 +45,9 @@ impl Stray{
                     ref event,
                     window_id,
                 } if window_id == self.window.id() => match event {
+                    WindowEvent::CursorMoved { device_id, position, modifiers } => {
+
+                    }
                     WindowEvent::KeyboardInput { device_id, input, is_synthetic } => {
                         self.global_resources.insert(InputEvent::from(input));
                     },
@@ -169,6 +172,11 @@ pub fn resize(res: &Resources, new_size: winit::dpi::PhysicalSize<u32>) {
     }
 }
 
+pub enum MouseEvent{
+    ENTERED,
+    MOVED(PhysicalPosition<i64>
+)
+}
 
 pub type Key = VirtualKeyCode;
 pub enum InputEvent{
