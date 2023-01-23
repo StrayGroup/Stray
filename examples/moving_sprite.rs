@@ -2,8 +2,7 @@ use stray::prelude::*;
 use legion::*;
 
 #[system(for_each)]
-fn rotating_sprite(transform: &mut Transform2D, #[resource] input: &InputEvent, #[resource] settings: &mut Settings){
-    settings.resizable = false;
+fn rotating_sprite(transform: &mut Transform2D, #[resource] input: &InputEvent){
     if input.is_pressed(Key::A){
         transform.position.x -= 10.0;
     }
@@ -15,6 +14,9 @@ fn rotating_sprite(transform: &mut Transform2D, #[resource] input: &InputEvent, 
     }
     if input.is_pressed(Key::S){
         transform.position.y -= 10.0;
+    }
+    if input.is_pressed(Key::Space){
+        transform.scale += 0.1;
     }
 }
 

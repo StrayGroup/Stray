@@ -20,8 +20,8 @@ pub struct ScreenDraw{
 }
 
 impl ScreenDraw{
-    pub fn init(x: f32, y: f32, rotation: f32, scale: f32) -> Self{
-        Self{transform: Transform2D::new(x, y, rotation, scale),vertices: vec![], indices: vec![], material: None}
+    pub fn init(x: f32, y: f32, rotation: f32) -> Self{
+        Self{transform: Transform2D::new(x, y, rotation, 1.0),vertices: vec![], indices: vec![], material: None}
     }
 
     pub fn set_vertices(&mut self, vertices: Vec<Vertex> ){
@@ -59,7 +59,7 @@ impl ScreenDraw{
             self.transform.rotation,
             self.transform.scale
         );
-        let vertices: Vec<RawVertex> = self.vertices.iter().map(|x| x.to_raw(raw_size, true_transform) * self.transform.scale).collect();
+        let vertices: Vec<RawVertex> = self.vertices.iter().map(|x| x.to_raw(raw_size, true_transform)).collect();
         let vertex_buffer = device.create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
                 label: Some("Vertex Buffer"),

@@ -28,7 +28,7 @@ fn draw(draw: &mut ScreenDraw){
 fn main(){
     Stray::new()
         .with_title("Stray App")
-        .push((ScreenDraw::init(),))
+        .push((ScreenDraw::init(0.0,0.0,0.0),))
         .add_system(draw_system())
         .build()
         .run();
