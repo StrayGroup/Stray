@@ -9,8 +9,9 @@ edition = "2021"
 wgpu = "0.14.2"
 legion = "0.4.0"
 winit = "0.27.5"
+rayon = "1.6.1"
+smaa = "0.8.0"
+
 stray_render= {path="../stray_render"}
 stray_scene = {path="../stray_scene"}
 stray_texture = {path="../stray_texture"}
-rayon = "1.6.1"
-smaa = "0.8.0"
