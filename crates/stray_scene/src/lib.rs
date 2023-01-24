@@ -31,8 +31,8 @@ impl Sprite{
             TextureVertex::new(-tw, th, 0.0, 0.0), TextureVertex::new(tw, -th, 1.0, 1.0 ), TextureVertex::new(tw, th, 1.0, 0.0),
         ];
         let true_transform = Transform2D::new(
-            transform.position.x/(config.width as f32), 
-            transform.position.y/(config.height as f32), 
+            transform.position.x/((config.width/2) as f32), 
+            transform.position.y/((config.height/2) as f32), 
             transform.rotation,
             transform.scale
         );

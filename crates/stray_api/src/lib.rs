@@ -76,6 +76,7 @@ impl Stray{
 pub struct StrayBuilder{
     render_schedule: systems::Builder,
     global_schedule: systems::Builder,
+    once_schedule: systems::Builder,
     stray: Stray,
     settings: Settings,
 }
@@ -84,6 +85,7 @@ impl StrayBuilder{
     pub fn new() -> Self{
         let global_schedule = Schedule::builder();
         let render_schedule = Schedule::builder();
+        let once_schedule = Schedule::builder();
         let settings = Settings::default();
         let event_loop = EventLoop::new();
         let window = WindowBuilder::new()
@@ -104,6 +106,7 @@ impl StrayBuilder{
         Self { 
             render_schedule, 
             global_schedule,
+            once_schedule,
             stray,
             settings,
         }
@@ -116,6 +119,14 @@ impl StrayBuilder{
     pub fn with_size(mut self, width: u32, height: u32) -> Self{
         self.settings.width = width;
         self.settings.height = height;
+        self
+    }
+
+    pub fn run_once<R>(mut self, system: R) -> Self
+    where
+        R: systems::ParallelRunnable + 'static
+    {
+        self.once_schedule.add_system(system);
         self
     }
 
@@ -150,6 +161,7 @@ impl StrayBuilder{
     }
     
     pub fn build(mut self) -> Stray{
+        self.once_schedule.build().execute(&mut self.stray.world, &mut self.stray.global_resources);
         self.init_systems();
         parse_settings(&self.settings,&self.stray.window);
         self.stray.settings = self.settings;
@@ -172,6 +184,7 @@ pub fn resize(res: &Resources, new_size: winit::dpi::PhysicalSize<u32>) {
     }
 }
 
+// WIP
 pub enum MouseEvent{
     ENTERED,
     MOVED(PhysicalPosition<i64>

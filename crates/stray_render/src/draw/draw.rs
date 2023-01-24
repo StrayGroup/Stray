@@ -54,8 +54,8 @@ impl ScreenDraw{
     pub fn create_vertex_buffer(&self, device: &Device, config: &SurfaceConfiguration) -> StrayVertexBuffer{
         let raw_size = [config.width as i32,config.height as i32];
         let true_transform = Transform2D::new(
-            self.transform.position.x/(config.width as f32), 
-            self.transform.position.y/(config.height as f32), 
+            self.transform.position.x/((config.width/2) as f32), 
+            self.transform.position.y/((config.height/2) as f32), 
             self.transform.rotation,
             self.transform.scale
         );

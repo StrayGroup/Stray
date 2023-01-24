@@ -1,5 +1,5 @@
 use stray::prelude::*;
-use legion::*;
+use legion::{*, systems::CommandBuffer};
 
 #[system(for_each)]
 fn rotating_sprite(transform: &mut Transform2D, #[resource] input: &InputEvent){
@@ -16,17 +16,23 @@ fn rotating_sprite(transform: &mut Transform2D, #[resource] input: &InputEvent){
         transform.position.y -= 10.0;
     }
     if input.is_pressed(Key::Space){
-        transform.scale += 0.1;
+        transform.position *= -1.0;
     }
+}
+
+#[system]
+fn setup_sprite(commands: &mut CommandBuffer){
+    commands.push((
+        Transform2D::new(-500.0, -250.0, 0.0, 1.0),
+        Sprite::new(include_bytes!("sprite.png"))
+    ));
 }
 
 fn main(){
     Stray::new()
-        .push((
-            Transform2D::new(0.0, 0.0, 0.0, 1.0),
-            Sprite::new(include_bytes!("sprite.png"))
-        ))
+        .with_size(1000, 500)
         .add_system(rotating_sprite_system())
+        .run_once(setup_sprite_system())
         .build()
         .run();
 }
