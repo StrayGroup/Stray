@@ -23,8 +23,8 @@ fn rotating_sprite(transform: &mut Transform2D, #[resource] input: &InputEvent){
 #[system]
 fn setup_sprite(commands: &mut CommandBuffer){
     commands.push((
-        Transform2D::new(-500.0, -250.0, 0.0, 1.0),
-        Sprite::new(include_bytes!("sprite.png"))
+        Transform2D::new(-500, -250, 0, 1.0),
+        Sprite::new(include_bytes!("sprite.png"), 0)
     ));
 }
 

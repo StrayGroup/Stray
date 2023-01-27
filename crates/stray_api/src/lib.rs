@@ -6,6 +6,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::{WindowBuilder, Window}, dpi::{PhysicalSize, PhysicalPosition},
 };
+use stray_systems::*;
 
 use stray_render::*;
 
@@ -20,7 +21,6 @@ pub struct Stray{
     window: Window,
     event_loop: EventLoop<()>,
     world: World,
-    settings: Settings
 }
 
 impl Stray{
@@ -29,7 +29,6 @@ impl Stray{
     }
     pub fn run(mut self) {
         self.global_resources.insert(InputEvent::NONE);
-        self.global_resources.insert(self.settings);
         let mut r_schedule = self.render_schedule.unwrap();
         let mut g_schedule = self.global_schedule.unwrap();
         match initialize_render(&mut self.render_resources, &self.window, StrayBackend::All){
@@ -46,24 +45,26 @@ impl Stray{
                     window_id,
                 } if window_id == self.window.id() => match event {
                     WindowEvent::CursorMoved { device_id, position, modifiers } => {
-
+                        
                     }
                     WindowEvent::KeyboardInput { device_id, input, is_synthetic } => {
                         self.global_resources.insert(InputEvent::from(input));
                     },
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::Resized(physical_size) => {
-                        resize(&self.render_resources, *physical_size);
+                        resize(&self.render_resources, &self.global_resources, *physical_size);
                     }
                     WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                        resize(&self.render_resources, **new_inner_size);
+                        resize(&self.render_resources, &self.global_resources, **new_inner_size);
                         
                     }
                     _ => {}
                 },
                 Event::RedrawRequested(_) => {
+    
                 },
                 Event::MainEventsCleared => {
+                    parse_settings(&self.global_resources.get::<Settings>().unwrap(), &self.window);
                     r_schedule.execute(&mut self.world, &mut self.render_resources);
                     g_schedule.execute(&mut self.world, &mut self.global_resources);
                     self.global_resources.insert(InputEvent::NONE);
@@ -100,7 +101,6 @@ impl StrayBuilder{
             window: window, 
             event_loop: event_loop, 
             world: World::default(),
-            settings: Settings::default()
         };
 
         Self { 
@@ -111,8 +111,8 @@ impl StrayBuilder{
             settings,
         }
     }
-    pub fn with_title(mut self, title: &str) -> Self{
-        self.settings.title = title.to_string();
+    pub fn with_title(mut self, title: &'static str) -> Self{
+        self.settings.title = title;
         self
     }
 
@@ -161,10 +161,10 @@ impl StrayBuilder{
     }
     
     pub fn build(mut self) -> Stray{
-        self.once_schedule.build().execute(&mut self.stray.world, &mut self.stray.global_resources);
         self.init_systems();
         parse_settings(&self.settings,&self.stray.window);
-        self.stray.settings = self.settings;
+        self.stray.global_resources.insert(self.settings);
+        self.once_schedule.build().execute(&mut self.stray.world, &mut self.stray.global_resources); 
         self.stray.global_schedule = Some(self.global_schedule.build());
         self.stray.render_schedule = Some(self.render_schedule.build());
         self.stray
@@ -176,11 +176,13 @@ impl StrayBuilder{
 
 // Other stuff
 
-pub fn resize(res: &Resources, new_size: winit::dpi::PhysicalSize<u32>) {
+pub fn resize(render_res: &Resources, global_res: &Resources, new_size: winit::dpi::PhysicalSize<u32>) {
     if new_size.width > 0 && new_size.height > 0 {
-        res.get_mut::<EngineData<SurfaceConfiguration>>().unwrap().0.width = new_size.width;
-        res.get_mut::<EngineData<SurfaceConfiguration>>().unwrap().0.height = new_size.height;
-        res.get::<EngineData<Surface>>().unwrap().0.configure(&res.get::<EngineData<Device>>().unwrap().0, &res.get::<EngineData<SurfaceConfiguration>>().unwrap().0);
+        global_res.get_mut::<Settings>().unwrap().width = new_size.width;
+        global_res.get_mut::<Settings>().unwrap().height = new_size.height;
+        render_res.get_mut::<EngineData<SurfaceConfiguration>>().unwrap().0.width = new_size.width;
+        render_res.get_mut::<EngineData<SurfaceConfiguration>>().unwrap().0.height = new_size.height;
+        render_res.get::<EngineData<Surface>>().unwrap().0.configure(&render_res.get::<EngineData<Device>>().unwrap().0, &render_res.get::<EngineData<SurfaceConfiguration>>().unwrap().0);
     }
 }
 

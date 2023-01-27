@@ -14,8 +14,3 @@ members = ["crates/*"]
 
 stray_internal = {path = "crates/stray_internal"}
 legion = "0.4.0"
-
-
-[[example]]
-name = "ping_pong"
-path = "examples/ping_pong/ping_pong.rs"

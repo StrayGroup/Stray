@@ -5,7 +5,7 @@ use legion::system;
 #[system(for_each)]
 fn draw(draw: &mut ScreenDraw){ 
     let vertices = vec![
-        Vertex::new(-500, -500), Vertex::new(500, -500), Vertex::new(-500, 500), Vertex::new(500, 500)
+        Vertex::new(-500, -500, 0), Vertex::new(500, -500, 0), Vertex::new(-500, 500, 0), Vertex::new(500, 500, 0)
     ];
 
     let indices = vec![
@@ -28,7 +28,7 @@ fn draw(draw: &mut ScreenDraw){
 fn main(){
     Stray::new()
         .with_title("Stray App")
-        .push((ScreenDraw::init(0.0,0.0,0.0),))
+        .push((ScreenDraw::init(0,0,0),))
         .add_system(draw_system())
         .build()
         .run();

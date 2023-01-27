@@ -1,5 +1,5 @@
 [package]
-name = "stray_texture"
+name = "stray_systems"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,6 +7,9 @@ edition = "2021"
 
 [dependencies]
 legion = "0.4.0"
-image = "0.24.5"
 wgpu = {version = "0.14.2", features = ["glsl"]}
 naga = "0.10.0"
+smaa = "0.8.0"
+
+stray_scene = {path="../stray_scene"}
+stray_render = {path="../stray_render"}

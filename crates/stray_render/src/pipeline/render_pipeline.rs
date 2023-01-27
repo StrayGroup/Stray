@@ -1,6 +1,6 @@
 use wgpu::*;
 
-use stray_scene::{StrayShapeRenderPipeline, StrayTextureRenderPipeline, RawVertex};
+use stray_scene::*;
 
 pub fn create_shape_pipeline(device: &Device, config: &SurfaceConfiguration) -> StrayShapeRenderPipeline{
     let shader = device.create_shader_module(include_wgsl!("shaders/shape.wgsl"));
