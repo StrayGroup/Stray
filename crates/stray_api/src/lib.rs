@@ -6,29 +6,42 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::{WindowBuilder, Window}, dpi::{PhysicalSize, PhysicalPosition},
 };
-use stray_systems::*;
 
+use stray_systems::*;
 use stray_render::*;
 
 mod settings;
+mod plugin;
+pub use plugin::*;
 pub use settings::*;
 
 pub struct Stray{
-    global_schedule: Option<Schedule>,
-    render_schedule: Option<Schedule>,
-    global_resources: Resources,
-    render_resources: Resources,
-    window: Window,
-    event_loop: EventLoop<()>,
-    world: World,
+    pub global_schedule: Option<Schedule>,
+    pub render_schedule: Option<Schedule>,
+    pub global_resources: Resources,
+    pub render_resources: Resources,
+    pub plugins: Vec<Box<dyn Plugin>>,
+    pub window: Window,
+    pub event_loop: EventLoop<()>,
+    pub world: World,
 }
 
 impl Stray{
     pub fn new() -> StrayBuilder{
         StrayBuilder::new()
     }
+
+    pub fn get_resources(&self) -> &Resources{
+        &self.global_resources
+    }
+
+    pub fn get_mut_resources(&mut self) -> &mut Resources{
+        &mut self.global_resources
+    }
+
     pub fn run(mut self) {
         self.global_resources.insert(InputEvent::NONE);
+        self.global_resources.insert(LastState::NONE);
         let mut r_schedule = self.render_schedule.unwrap();
         let mut g_schedule = self.global_schedule.unwrap();
         match initialize_render(&mut self.render_resources, &self.window, StrayBackend::All){
@@ -44,12 +57,19 @@ impl Stray{
                     ref event,
                     window_id,
                 } if window_id == self.window.id() => match event {
-                    WindowEvent::CursorMoved { device_id, position, modifiers } => {
-                        
+                    WindowEvent::ReceivedCharacter(ch) => println!("{:?}",ch==&' '),
+                    WindowEvent::CursorMoved {position,.. } => {
+                        let true_position = [position.x-(self.window.inner_size().width/2) as f64, position.y-(self.window.inner_size().height/2) as f64];
+                        println!("{:?}", true_position);
                     }
-                    WindowEvent::KeyboardInput { device_id, input, is_synthetic } => {
+                    WindowEvent::MouseInput {  state, button, .. } =>{
+
+                    }
+                    WindowEvent::KeyboardInput { input, .. } => {
                         self.global_resources.insert(InputEvent::from(input));
+                        self.global_resources.insert(LastState::from(input));
                     },
+
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::Resized(physical_size) => {
                         resize(&self.render_resources, &self.global_resources, *physical_size);
@@ -75,11 +95,11 @@ impl Stray{
 }
 
 pub struct StrayBuilder{
-    render_schedule: systems::Builder,
-    global_schedule: systems::Builder,
-    once_schedule: systems::Builder,
-    stray: Stray,
-    settings: Settings,
+    pub render_schedule: systems::Builder,
+    pub global_schedule: systems::Builder,
+    pub once_schedule: systems::Builder,
+    pub stray: Stray,
+    pub settings: Settings,
 }
 
 impl StrayBuilder{
@@ -98,6 +118,7 @@ impl StrayBuilder{
             render_schedule: None,
             global_resources: Resources::default(), 
             render_resources: Resources::default(),
+            plugins: vec![],
             window: window, 
             event_loop: event_loop, 
             world: World::default(),
@@ -115,10 +136,13 @@ impl StrayBuilder{
         self.settings.title = title;
         self
     }
-
     pub fn with_size(mut self, width: u32, height: u32) -> Self{
         self.settings.width = width;
         self.settings.height = height;
+        self
+    }
+    pub fn set_resources(mut self, resources: Resources) -> Self{
+        self.stray.global_resources = resources;
         self
     }
 
@@ -129,7 +153,6 @@ impl StrayBuilder{
         self.once_schedule.add_system(system);
         self
     }
-
     pub fn add_system<S>(mut self, system: S) -> Self
     where
         S: systems::ParallelRunnable + 'static
@@ -152,6 +175,13 @@ impl StrayBuilder{
     {
         self.stray.global_resources.insert(res);
         self
+    }
+
+    pub fn add_plugin<P>(mut self, plugin: P, resources: &mut Resources) -> Self
+    where
+        P: Plugin + 'static
+    {
+        plugin.build(self, resources)
     }
 
     pub fn init_systems(&mut self){
@@ -189,11 +219,16 @@ pub fn resize(render_res: &Resources, global_res: &Resources, new_size: winit::d
 // WIP
 pub enum MouseEvent{
     ENTERED,
-    MOVED(PhysicalPosition<i64>
-)
+    MOVED(PhysicalPosition<i64>)
 }
 
 pub type Key = VirtualKeyCode;
+
+pub enum LastState{
+    PRESSED(Key),
+    RELEASED(Key),
+    NONE
+}
 pub enum InputEvent{
     PRESSED(Key),
     RELEASED(Key),
@@ -217,6 +252,32 @@ impl InputEvent{
 }
 
 impl From<&KeyboardInput> for InputEvent{
+    fn from(value: &KeyboardInput) -> Self {
+        match value.state{
+            ElementState::Pressed => Self::PRESSED(value.virtual_keycode.unwrap()),
+            ElementState::Released => Self::RELEASED(value.virtual_keycode.unwrap())
+        }
+    }
+}
+
+
+impl LastState{
+    pub fn was_pressed(&self, vk: Key) -> bool{
+        match self{
+            Self::PRESSED(key) if key == &vk =>  true,
+            _ => false
+        }
+    }
+
+    pub fn was_released(&self, vk: Key) -> bool{
+        match self{
+            Self::RELEASED(key) if key == &vk =>  true,
+            _ => false
+        }
+    }
+}
+
+impl From<&KeyboardInput> for LastState{
     fn from(value: &KeyboardInput) -> Self {
         match value.state{
             ElementState::Pressed => Self::PRESSED(value.virtual_keycode.unwrap()),

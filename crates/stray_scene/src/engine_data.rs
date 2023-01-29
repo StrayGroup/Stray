@@ -145,8 +145,15 @@ pub struct StrayTextureRenderPipeline(pub RenderPipeline, pub BindGroupLayout);
 pub struct StrayShapeRenderPipeline(pub RenderPipeline);
 pub struct RenderQuery(pub Vec<RenderObject>);
 pub struct EngineData<D>(pub D);
+pub struct PhysicData<D>(pub D);
 
 impl <D>EngineData<D>{
+    pub fn set(&mut self, data: D){
+        self.0 = data;
+    }
+}
+
+impl <D>PhysicData<D>{
     pub fn set(&mut self, data: D){
         self.0 = data;
     }

@@ -11,3 +11,4 @@ stray_material = {path="../stray_material"}
 stray_api = {path="../stray_api"}
 stray_texture = {path="../stray_texture"}
 stray_scene = {path="../stray_scene"}
+stray_physic = {path="../stray_physic"}

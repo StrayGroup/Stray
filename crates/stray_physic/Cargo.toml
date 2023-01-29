@@ -1,17 +1,13 @@
 [package]
-name = "stray"
+name = "stray_physic"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[workspace]
-exclude = ["modules/*", "thirdparty/*", "extension"]
-members = ["crates/*"]
-
-
 [dependencies]
-
-stray_internal = {path = "crates/stray_internal"}
-legion = "0.4.0"
 rapier2d = "0.17.1"
+legion = {version="0.4.0", features=["extended-tuple-impls"]}
+
+stray_scene = {path="../stray_scene"}
+stray_api = {path="../stray_api"}

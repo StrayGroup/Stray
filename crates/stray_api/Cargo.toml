@@ -10,6 +10,7 @@ naga = "0.10.0"
 legion = "0.4.0"
 winit = "0.27.5"
 rayon = "1.6.1"
+rapier2d = "0.17.1"
 smaa = "0.8.0"
 
 wgpu = {version = "0.14.2", features = ["glsl"]}

@@ -2,20 +2,20 @@ use stray::prelude::*;
 use legion::{*, systems::CommandBuffer};
 
 #[system(for_each)]
-fn rotating_sprite(transform: &mut Transform2D, #[resource] input: &InputEvent){
-    if input.is_pressed(Key::A){
+fn rotating_sprite(transform: &mut Transform2D, #[resource] input: &LastState){
+    if input.was_pressed(Key::A){
         transform.position.x -= 10.0;
     }
-    if input.is_pressed(Key::D){
+    if input.was_pressed(Key::D){
         transform.position.x += 10.0;
     }
-    if input.is_pressed(Key::W){
+    if input.was_pressed(Key::W){
         transform.position.y += 10.0;
     }
-    if input.is_pressed(Key::S){
+    if input.was_pressed(Key::S){
         transform.position.y -= 10.0;
     }
-    if input.is_pressed(Key::Space){
+    if input.was_pressed(Key::Space){
         transform.position *= -1.0;
     }
 }
