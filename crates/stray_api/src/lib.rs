@@ -57,13 +57,12 @@ impl Stray{
                     ref event,
                     window_id,
                 } if window_id == self.window.id() => match event {
-                    WindowEvent::ReceivedCharacter(ch) => println!("{:?}",ch==&' '),
                     WindowEvent::CursorMoved {position,.. } => {
+                        // WIP
                         let true_position = [position.x-(self.window.inner_size().width/2) as f64, position.y-(self.window.inner_size().height/2) as f64];
-                        println!("{:?}", true_position);
                     }
                     WindowEvent::MouseInput {  state, button, .. } =>{
-
+                        // WIP
                     }
                     WindowEvent::KeyboardInput { input, .. } => {
                         self.global_resources.insert(InputEvent::from(input));
