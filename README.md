@@ -14,12 +14,14 @@
 - **Drawing System**
 - **Texture Rendering**
 - **Input System**
+- **Physic Bodies which uses Rapier Engine (WIP)**
+- **SMAA Support (Commented code, maybe works on better hardware than I have)**
 
 ## Nearby Planned Features:
-- **Physic Bodies which uses Rapier Engine**
-- **SMAA Support**
 - **Camera System**
 - **Text Rendering**
+- **Full Plugin System**
+
 
 ## Getting Started
 To draw a window, use:
@@ -37,7 +39,8 @@ fn main(){
 ## Dependences Used:
 - **[WGPU](https://github.com/gfx-rs/wgpu)**
 - **[Legion ECS](https://github.com/amethyst/legion)**
-- **[CGMath](https://github.com/rustgd/cgmath)**
+- **[Rapier](https://github.com/dimforge/rapier)**
+- **[Glam](https://github.com/bitshifter/glam-rs)**
 
 ## Contributing
 Any contribution is welcome, no matter what your skills are, create issues and make pull requests that close them or other issues
