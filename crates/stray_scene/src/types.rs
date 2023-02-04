@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use glam::*;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Transform2D{
     pub position: Vec2,
     pub rotation: i32,

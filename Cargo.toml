@@ -13,5 +13,5 @@ members = ["crates/*"]
 [dependencies]
 
 stray_internal = {path = "crates/stray_internal"}
+
 legion = "0.4.0"
-rapier2d = "0.17.1"

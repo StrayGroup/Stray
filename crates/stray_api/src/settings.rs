@@ -26,7 +26,6 @@ impl Default for Settings{
 }
 
 pub fn parse_settings(settings: &Settings, window: &winit::window::Window){
-    window.set_always_on_top(settings.always_on_top);
     window.set_title(settings.title);
     window.set_resizable(settings.resizable);
     window.set_inner_size(PhysicalSize::new(settings.width, settings.height));

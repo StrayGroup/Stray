@@ -5,7 +5,5 @@ pub mod prelude{
     pub use stray_api::*;
     pub use stray_texture::*;
     pub use stray_scene::*;
-    // Todo: make it a feature
-    pub use stray_physic::*;
 }
 

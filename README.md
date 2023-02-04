@@ -14,7 +14,6 @@
 - **Drawing System**
 - **Texture Rendering**
 - **Input System**
-- **Physic Bodies which uses Rapier Engine (WIP)**
 - **SMAA Support (Commented code, maybe works on better hardware than I have)**
 
 ## Nearby Planned Features:
@@ -39,7 +38,6 @@ fn main(){
 ## Dependences Used:
 - **[WGPU](https://github.com/gfx-rs/wgpu)**
 - **[Legion ECS](https://github.com/amethyst/legion)**
-- **[Rapier](https://github.com/dimforge/rapier)**
 - **[Glam](https://github.com/bitshifter/glam-rs)**
 
 ## Contributing

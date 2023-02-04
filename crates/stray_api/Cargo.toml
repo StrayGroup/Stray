@@ -6,14 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-naga = "0.10.0"
+naga = "0.11.0"
 legion = "0.4.0"
-winit = "0.27.5"
-rayon = "1.6.1"
-rapier2d = "0.17.1"
+winit = "0.28.1"
 smaa = "0.8.0"
 
-wgpu = {version = "0.14.2", features = ["glsl"]}
+wgpu = {version = "0.15.0", features = ["glsl"]}
 
 stray_render= {path="../stray_render"}
 stray_scene = {path="../stray_scene"}

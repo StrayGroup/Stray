@@ -4,7 +4,7 @@ use wgpu::*;
 use stray_scene::*;
 use stray_render::render_redraw;
 
-use smaa::SmaaTarget;
+// use smaa::SmaaTarget;
 
 #[system(for_each)]
 pub fn read_geometry(

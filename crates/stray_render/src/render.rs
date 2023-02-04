@@ -1,4 +1,4 @@
-use smaa::{SmaaTarget, SmaaFrame};
+//use smaa::{SmaaTarget, SmaaFrame};
 use wgpu::*;
 
 use legion::{
@@ -105,10 +105,22 @@ pub fn render_redraw(
 
 pub fn initialize_render(res: &mut Resources, window: &Window, backend: StrayBackend) -> Result<(), &'static str>{
     let instance = match backend{
-        StrayBackend::Vulkan => Instance::new(Backends::VULKAN),
-        StrayBackend::Metal => Instance::new(Backends::METAL),
-        StrayBackend::DX12 => Instance::new(Backends::DX12),
-        _ => Instance::new(Backends::all())
+        StrayBackend::Vulkan => {Instance::new( InstanceDescriptor {
+            backends:  Backends::VULKAN,
+            dx12_shader_compiler:  Dx12Compiler::Fxc,
+       })},
+        StrayBackend::Metal => {Instance::new( InstanceDescriptor {
+            backends:  Backends::METAL,
+            dx12_shader_compiler:  Dx12Compiler::Fxc,
+       })},
+        StrayBackend::DX12 => {Instance::new( InstanceDescriptor {
+            backends:  Backends::DX12,
+            dx12_shader_compiler:  Dx12Compiler::Fxc,
+       })},
+        _ => {Instance::new( InstanceDescriptor {
+            backends: Backends::all(),
+            dx12_shader_compiler:  Dx12Compiler::Fxc,
+       })},
     };
 
     let adapters = match backend{
@@ -118,19 +130,20 @@ pub fn initialize_render(res: &mut Resources, window: &Window, backend: StrayBac
         _ => instance.enumerate_adapters(Backends::all())
     };
     let adapter = adapters.into_iter().next().unwrap();
-    let surface = unsafe {instance.create_surface(&window)};
+    let surface = unsafe {instance.create_surface(&window).unwrap()};
     let adapter_features = adapter.features();
     let (device, queue) = block_on(request_device(&adapter, adapter_features));
     let window_size = window.inner_size();
     let config = SurfaceConfiguration {
         usage: TextureUsages::RENDER_ATTACHMENT,
-        format: surface.get_supported_formats(&adapter)[0],
+        format: TextureFormat::Rgba8Unorm,
         width: window_size.width,
         height: window_size.height,
         present_mode: PresentMode::Mailbox,
         alpha_mode: CompositeAlphaMode::Auto,
+        view_formats: vec![TextureFormat::Rgba8UnormSrgb]
     };
-    let swapchain_format = surface.get_supported_formats(&adapter)[0];
+    // let swapchain_format = surface.get_supported_formats(&adapter)[0];
 
     // Pipeline creation, see pipeline/mod.rs
     let shape_pipeline = create_shape_pipeline(&device, &config);
