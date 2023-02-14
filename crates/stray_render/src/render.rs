@@ -139,7 +139,7 @@ pub fn initialize_render(res: &mut Resources, window: &Window, backend: StrayBac
         format: TextureFormat::Rgba8Unorm,
         width: window_size.width,
         height: window_size.height,
-        present_mode: PresentMode::Mailbox,
+        present_mode: PresentMode::AutoVsync,
         alpha_mode: CompositeAlphaMode::Auto,
         view_formats: vec![TextureFormat::Rgba8UnormSrgb]
     };
@@ -150,6 +150,7 @@ pub fn initialize_render(res: &mut Resources, window: &Window, backend: StrayBac
     let texture_pipeline = create_texture_pipeline(&device, &config);
     //let smaa_target = SmaaTarget::new(&device, &queue, config.width, config.height, swapchain_format, smaa::SmaaMode::Smaa1X);
     surface.configure(&device, &config);
+    println!("Stray Engine v0.1");
     println!("Using {} ({:?})", adapter.get_info().name, adapter.get_info().backend);
 
     // Insert all of these struct as Engine Data

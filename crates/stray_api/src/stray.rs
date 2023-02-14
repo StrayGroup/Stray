@@ -42,7 +42,6 @@ pub struct Stray{
     global_resources: Resources,
     render_resources: Resources,
     plugins: Vec<Box<dyn Plugin>>,
-    window: Window,
     event_loop: EventLoop<()>,
     world: World,
 }
@@ -73,10 +72,13 @@ impl Stray{
     /// ### ``Stray::run()`` might not return
     /// 
     pub fn run(mut self) {
-        parse_settings(&self.global_resources.get::<Settings>().unwrap(), &self.window);
+        parse_settings(
+            &self.global_resources.get::<Settings>().unwrap(), 
+            &self.global_resources.get::<Window>().unwrap()
+        );
         self.global_resources.insert(InputEvent::NONE);
         self.global_resources.insert(LastState::NONE);
-        self.global_resources.insert(self.window);
+        
         let mut r_schedule = self.render_schedule.unwrap();
         let mut g_schedule = self.global_schedule.unwrap();
         match initialize_render(&mut self.render_resources, &self.global_resources.get::<Window>().unwrap(), StrayBackend::All){
@@ -87,45 +89,48 @@ impl Stray{
             Ok(_) => {}
         }
         self.event_loop.run(move |event, _, control_flow| 
-            match event {
-                Event::WindowEvent {
-                    ref event,
-                    window_id,
-                } if window_id == self.global_resources.get::<Window>().unwrap().id() => match event {
-                    WindowEvent::CursorMoved {..} => {
-                        // WIP
-                        // let true_position = [
-                        //     position.x-(self.global_resources.get::<Window>().unwrap().inner_size().width/2) as f64, 
-                        //     position.y-(self.global_resources.get::<Window>().unwrap().inner_size().height/2) as f64
-                        // ];
-                    }
-                    WindowEvent::MouseInput {..} =>{
-                        // WIP
-                    }
-                    WindowEvent::KeyboardInput { input, .. } => {
-                        self.global_resources.insert(InputEvent::from(input));
-                        self.global_resources.insert(LastState::from(input));
-                    },
+            {
+                match event {
+                    Event::WindowEvent {
+                        ref event,
+                        window_id,
+                    } if window_id == self.global_resources.get::<Window>().unwrap().id() => match event {
+                        WindowEvent::CursorMoved {..} => {
+                            // WIP
+                            // let true_position = [
+                            //     position.x-(self.global_resources.get::<Window>().unwrap().inner_size().width/2) as f64, 
+                            //     position.y-(self.global_resources.get::<Window>().unwrap().inner_size().height/2) as f64
+                            // ];
+                        }
+                        WindowEvent::MouseInput {..} =>{
+                            // WIP
+                        }
+                        WindowEvent::KeyboardInput { input, .. } => {
+                            self.global_resources.insert(InputEvent::from(input));
+                            self.global_resources.insert(LastState::from(input));
+                        },
 
-                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                    WindowEvent::Resized(physical_size) => {
-                        resize(&self.render_resources, &self.global_resources, *physical_size);
-                    }
-                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                        resize(&self.render_resources, &self.global_resources, **new_inner_size);
-                        
+                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                        WindowEvent::Resized(physical_size) => {
+                            resize(&self.render_resources, &self.global_resources, *physical_size);
+                        }
+                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                            resize(&self.render_resources, &self.global_resources, **new_inner_size);
+                            
+                        }
+                        _ => {}
+                    },
+                    Event::RedrawRequested(_) => {
+        
+                    },
+                    Event::MainEventsCleared => {
+                        r_schedule.execute(&mut self.world, &mut self.render_resources);
+                        g_schedule.execute(&mut self.world, &mut self.global_resources);
+                        self.global_resources.insert(InputEvent::NONE);
                     }
                     _ => {}
-                },
-                Event::RedrawRequested(_) => {
+            }
     
-                },
-                Event::MainEventsCleared => {
-                    r_schedule.execute(&mut self.world, &mut self.render_resources);
-                    g_schedule.execute(&mut self.world, &mut self.global_resources);
-                    self.global_resources.insert(InputEvent::NONE);
-                }
-                _ => {}
         });
     }
 }
@@ -146,17 +151,17 @@ impl Stray{
 ///     .with_size(400, 600)
 ///     .run_once(init_player_system())
 ///     .add_system(player_movement_system())
-///     .push((Player, Transform2D::Zero()))
+///     .push((Player, Transform2D::ZERO))
 ///     .insert(10)
 ///     .add_plugin(MyPlugin)
 ///     .build();
 /// ```
 pub struct StrayBuilder{
-    pub render_schedule: systems::Builder,
-    pub global_schedule: systems::Builder,
-    pub once_schedule: systems::Builder,
-    pub stray: Stray,
-    pub settings: Settings,
+    render_schedule: systems::Builder,
+    global_schedule: systems::Builder,
+    once_schedule: systems::Builder,
+    stray: Stray,
+    settings: Settings,
 }
 
 impl StrayBuilder{
@@ -167,17 +172,13 @@ impl StrayBuilder{
         let once_schedule = Schedule::builder();
         let settings = Settings::default();
         let event_loop = EventLoop::new();
-        let window = WindowBuilder::new()
-            .with_inner_size(PhysicalSize::new(600, 600))
-            .build(&event_loop).unwrap();
         
         let stray = Stray { 
             global_schedule: None,  
             render_schedule: None,
             global_resources: Resources::default(), 
             render_resources: Resources::default(),
-            plugins: vec![],
-            window: window, 
+            plugins: vec![], 
             event_loop: event_loop, 
             world: World::default(),
         };
@@ -275,8 +276,8 @@ impl StrayBuilder{
     ///     velocity: Vec2::new(0.0,0.0)
     /// };
     /// Stray::new()
-    ///     .push((player,Transform2D::Zero()))
-    ///     .push((ball, Transform2D::Zero()));
+    ///     .push((player,Transform2D::ZERO))
+    ///     .push((ball, Transform2D::ZERO));
     /// ```
     pub fn push<T>(mut self, comp: T) ->  Self
     where
@@ -338,9 +339,13 @@ impl StrayBuilder{
     /// It executes run_once schedule and return final stray app. It also adds systems to render schedule for rendering logic
     /// and setup window with stray settings
     pub fn build(mut self) -> Stray{
+        let window = WindowBuilder::new()
+            .with_inner_size(PhysicalSize::new(600, 600))
+            .build(&self.stray.event_loop).unwrap();
         self.init_systems();
-        parse_settings(&self.settings,&self.stray.window);
+        parse_settings(&self.settings,&window);
         self.stray.global_resources.insert(self.settings);
+        self.stray.global_resources.insert(window);
         self.once_schedule.build().execute(&mut self.stray.world, &mut self.stray.global_resources); 
         self.stray.global_schedule = Some(self.global_schedule.build());
         self.stray.render_schedule = Some(self.render_schedule.build());

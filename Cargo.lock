@@ -1551,11 +1551,13 @@ dependencies = [
 name = "stray_internal"
 version = "0.1.0"
 dependencies = [
+ "glam",
  "stray_api",
  "stray_material",
  "stray_render",
  "stray_scene",
  "stray_texture",
+ "winit",
 ]
 
 [[package]]

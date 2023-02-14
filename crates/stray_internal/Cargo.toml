@@ -6,6 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+winit = "0.28.1"
+glam = "0.22.0"
 stray_render = {path="../stray_render"}
 stray_material = {path="../stray_material"}
 stray_api = {path="../stray_api"}

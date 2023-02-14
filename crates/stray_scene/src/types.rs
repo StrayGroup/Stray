@@ -10,7 +10,13 @@ pub struct Transform2D{
 }
 
 impl Transform2D{
-    pub fn new(x: i32, y: i32, rotation: i32,scale: f32) -> Self {
+    pub const ZERO: Self = Self{
+        position: vec2(0.0,0.0),
+        rotation: 0,
+        scale: 1.0
+    };
+
+    pub const fn new(x: i32, y: i32, rotation: i32,scale: f32) -> Self {
         Self { position: Vec2::new(x as f32, y as f32), rotation: rotation, scale: scale}
     }
 
