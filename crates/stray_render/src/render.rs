@@ -11,23 +11,8 @@ use winit::{
 
 use stray_scene::*;
 
+use crate::hal::*;
 use crate::{create_shape_pipeline, create_texture_pipeline};
-
-
-#[derive(Clone, Copy)]
-pub enum StrayBackend{
-    Vulkan,
-    Metal,
-    DX12,
-    All
-}
-
-impl Default for StrayBackend{
-    fn default() -> Self {
-        Self::All
-    }
-}
-
 
 pub fn render_redraw(
     surface: &Surface, 
@@ -103,64 +88,37 @@ pub fn render_redraw(
 
 // Initializing render and write data into resources as Engine Data
 
-pub fn initialize_render(res: &mut Resources, window: &Window, backend: StrayBackend) -> Result<(), &'static str>{
-    let instance = match backend{
-        StrayBackend::Vulkan => {Instance::new( InstanceDescriptor {
-            backends:  Backends::VULKAN,
-            dx12_shader_compiler:  Dx12Compiler::Fxc,
-       })},
-        StrayBackend::Metal => {Instance::new( InstanceDescriptor {
-            backends:  Backends::METAL,
-            dx12_shader_compiler:  Dx12Compiler::Fxc,
-       })},
-        StrayBackend::DX12 => {Instance::new( InstanceDescriptor {
-            backends:  Backends::DX12,
-            dx12_shader_compiler:  Dx12Compiler::Fxc,
-       })},
-        _ => {Instance::new( InstanceDescriptor {
-            backends: Backends::all(),
-            dx12_shader_compiler:  Dx12Compiler::Fxc,
-       })},
-    };
+pub fn initialize_render(res: &mut Resources, window: &Window, backend: &SBackend) -> Result<(), &'static str>{
+    let instance = InstanceCreator::from(backend);
+    let adapter = instance.request_adapter(backend);
+    let surface = instance.create_surface(&window);
 
-    let adapters = match backend{
-        StrayBackend::Vulkan => instance.enumerate_adapters(Backends::VULKAN),
-        StrayBackend::Metal => instance.enumerate_adapters(Backends::METAL),
-        StrayBackend::DX12 => instance.enumerate_adapters(Backends::DX12),
-        _ => instance.enumerate_adapters(Backends::all())
-    };
-    let adapter = adapters.into_iter().next().unwrap();
-    let surface = unsafe {instance.create_surface(&window).unwrap()};
-    let adapter_features = adapter.features();
-    let (device, queue) = block_on(request_device(&adapter, adapter_features));
+    let (device, queue) = adapter.request_device();
     let window_size = window.inner_size();
-    let config = SurfaceConfiguration {
-        usage: TextureUsages::RENDER_ATTACHMENT,
-        format: TextureFormat::Rgba8Unorm,
-        width: window_size.width,
-        height: window_size.height,
-        present_mode: PresentMode::AutoVsync,
-        alpha_mode: CompositeAlphaMode::Auto,
-        view_formats: vec![TextureFormat::Rgba8UnormSrgb]
-    };
+    let config = SConfig::with(
+        window_size.width,
+        window_size.height,
+        true,
+        TextureFormat::Rgba8UnormSrgb
+    );
     // let swapchain_format = surface.get_supported_formats(&adapter)[0];
 
     // Pipeline creation, see pipeline/mod.rs
-    let shape_pipeline = create_shape_pipeline(&device, &config);
-    let texture_pipeline = create_texture_pipeline(&device, &config);
+    let shape_pipeline = create_shape_pipeline(&device.raw(), &config.raw());
+    let texture_pipeline = create_texture_pipeline(&device.raw(), &config.raw());
     //let smaa_target = SmaaTarget::new(&device, &queue, config.width, config.height, swapchain_format, smaa::SmaaMode::Smaa1X);
-    surface.configure(&device, &config);
+    surface.raw().configure(&device.raw(), &config.raw());
     println!("Stray Engine v0.1");
-    println!("Using {} ({:?})", adapter.get_info().name, adapter.get_info().backend);
+    println!("Using {} ({:?})", adapter.raw().get_info().name, adapter.raw().get_info().backend);
 
     // Insert all of these struct as Engine Data
     //res.insert(EngineData(smaa_target));
     res.insert(EngineData(instance));
-    res.insert(EngineData(adapter));
-    res.insert(EngineData(surface));
-    res.insert(EngineData(device));
-    res.insert(EngineData(queue));
-    res.insert(EngineData(config));
+    res.insert(EngineData(adapter ));
+    res.insert(EngineData(surface ));
+    res.insert(EngineData(device  ));
+    res.insert(EngineData(queue   ));
+    res.insert(EngineData(config  ));
     res.insert(EngineData(StrayIndexBuffer(None, 0)));
     res.insert(EngineData(StrayVertexBuffer(None, 0)));
     res.insert(shape_pipeline);
@@ -169,18 +127,3 @@ pub fn initialize_render(res: &mut Resources, window: &Window, backend: StrayBac
 
     Ok(())
 }
-
-// Other stuff
-
-async fn request_device(adapter: &Adapter, adapter_features: Features) -> (Device, Queue){
-    adapter.request_device(
-        &DeviceDescriptor {
-            features: adapter_features,
-            limits: Limits::default(),
-            label: Some("Device"),
-        },
-        None,
-    ).await.unwrap()
-}
-
-

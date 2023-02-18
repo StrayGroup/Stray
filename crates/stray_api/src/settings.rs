@@ -1,4 +1,4 @@
-use stray_render::StrayBackend;
+use stray_render::SBackend;
 use winit::dpi::PhysicalSize;
 
 
@@ -7,7 +7,7 @@ pub struct Settings{
     pub always_on_top: bool,
     pub title: &'static str,
     pub resizable: bool,
-    pub backend: StrayBackend,
+    pub backend: SBackend,
     pub width: u32,
     pub height: u32,
 }
@@ -18,7 +18,7 @@ impl Default for Settings{
             always_on_top: false, 
             title: "Stray App", 
             resizable: true, 
-            backend: StrayBackend::All,
+            backend: SBackend::ALL,
             width: 600,
             height: 600
         }

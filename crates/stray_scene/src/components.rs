@@ -1,4 +1,4 @@
-use glam::vec2;
+use glam::{vec2, Vec2};
 use wgpu::{*, util::DeviceExt};
 
 use image::*;
@@ -16,6 +16,7 @@ use crate::engine_data::{
 };
 use crate::types::Transform2D;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct Sprite{
     pub texture: StrayTexture,
     pub layer: i32,
@@ -72,15 +73,15 @@ impl Sprite{
     }
 }
 
-
-pub struct ScreenDraw{
+#[derive(Debug, Clone)]
+pub struct Canvas{
     pub transform: Transform2D,
     pub vertices: Vec<Vertex>,
     pub indices: Vec<u16>,
     pub material: Option<StandardMaterial>,
 }
 
-impl ScreenDraw{
+impl Canvas{
     pub fn init(x: i32, y: i32, rotation: i32) -> Self{
         Self{transform: Transform2D::new(x, y, rotation, 1.0),vertices: vec![], indices: vec![], material: None}
     }
@@ -137,6 +138,51 @@ impl ScreenDraw{
             vertex: Some(vertex),
             index: Some(index),
             bind_group: None
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Point2D{
+    pub position: Vec2,
+    pub rotation: f32,
+    pub scale: f32
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Line2D{
+    points: [Point2D;2]
+}
+
+impl Line2D{
+    pub fn new(p1: Point2D, p2: Point2D) -> Self{
+        Self{
+            points: [p1,p2]
+        }
+    }
+    pub fn right(&mut self) -> Point2D{
+        todo!()
+    }
+    pub fn left(&mut self) -> Point2D{
+        todo!()
+    }
+    pub fn top(&mut self) -> Point2D{
+        todo!()
+    }
+    pub fn bottom(&mut self) -> Point2D{
+        todo!()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct MultiLine2D{
+    points: Vec<Point2D>
+}
+
+impl MultiLine2D{
+    pub fn new(points: Vec<Point2D>) -> Self{
+        Self{
+            points
         }
     }
 }

@@ -1,6 +1,7 @@
 use image::*;
 use wgpu::*;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct StrayTexture{
     rgba: RgbaImage,
     pub dimensions: (u32,u32)

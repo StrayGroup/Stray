@@ -8,7 +8,7 @@ use stray_render::render_redraw;
 
 #[system(for_each)]
 pub fn read_geometry(
-    draw_component: &mut ScreenDraw, 
+    draw_component: &mut Canvas, 
     #[resource] device: &EngineData<Device>,
     #[resource] config: &EngineData<SurfaceConfiguration>,
     #[resource] render_query: &mut RenderQuery

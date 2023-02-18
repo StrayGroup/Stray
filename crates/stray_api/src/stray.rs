@@ -81,7 +81,11 @@ impl Stray{
         
         let mut r_schedule = self.render_schedule.unwrap();
         let mut g_schedule = self.global_schedule.unwrap();
-        match initialize_render(&mut self.render_resources, &self.global_resources.get::<Window>().unwrap(), StrayBackend::All){
+        match initialize_render(
+            &mut self.render_resources, 
+            &self.global_resources.get::<Window>().unwrap(), 
+            &self.global_resources.get::<Settings>().unwrap().backend
+        ){
             Err(e) => {
                 eprintln!("Render Error: {}", e);
                 std::process::exit(1);
