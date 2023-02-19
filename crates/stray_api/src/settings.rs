@@ -1,4 +1,4 @@
-use stray_render::SBackend;
+use hal::SBackend;
 use winit::dpi::PhysicalSize;
 
 

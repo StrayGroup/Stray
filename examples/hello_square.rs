@@ -28,7 +28,10 @@ fn draw(draw: &mut Canvas){
 fn main(){
     Stray::new()
         .with_title("Stray App")
-        .push((Canvas::init(0,0,0),))
+        .push((
+            Canvas::init(0),
+            Transform2D::ZERO
+        ))
         .add_system(draw_system())
         .build()
         .run();

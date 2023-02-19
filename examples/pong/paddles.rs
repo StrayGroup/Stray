@@ -10,23 +10,21 @@ pub fn init_paddles(cmd: &mut CommandBuffer, #[resource] window: &Window){
     cmd.push((
         LeftPaddle,
         Transform2D::new(
-            -((window.inner_size().width as i32)/2), // TODO: Create method for getting window edge
+            vec2(-((window.inner_size().width as i32)/2) as f32, 0.0), // TODO: Create method for getting window edge
             0,
-            0,
-            0.5
+            vec2(0.5,0.5)
         ),
-        Sprite::new(include_bytes!("textures/paddle.png"), 0)
+        Sprite::new(1, include_bytes!("textures/paddle.png"), 0)
     )); // Initialize Left Paddle
 
     cmd.push((
         RightPaddle,
         Transform2D::new(
-            (window.inner_size().width as i32)/2, // TODO: Create method for getting window edge
+            vec2(((window.inner_size().width as i32)/2) as f32, 0.0), // TODO: Create method for getting window edge
             0,
-            0,
-            0.5
+            vec2(0.5,0.5)
         ),
-        Sprite::new(include_bytes!("textures/paddle.png"), 0)
+        Sprite::new(2, include_bytes!("textures/paddle.png"), 0)
     )); // Initialize Left Paddle
 }
 

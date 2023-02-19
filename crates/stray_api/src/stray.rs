@@ -1,11 +1,15 @@
 use legion::*;
-use stray_scene::EngineData;
+
+use stray_scene::*;
+
 use wgpu::{Surface, Device, SurfaceConfiguration};
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::{WindowBuilder, Window}, dpi::{PhysicalSize},
 };
+
+use hal::*;
 
 use stray_systems::*;
 use stray_render::*;
@@ -334,9 +338,9 @@ impl StrayBuilder{
     }
 
     fn init_systems(&mut self){
-        self.render_schedule.add_system(read_geometry_system());
+        self.render_schedule.add_system(convert_to_render_objects_system::<Sprite>());
+        self.render_schedule.add_system(convert_to_render_objects_system::<Canvas>());
         self.render_schedule.add_system(redraw_system());
-        self.render_schedule.add_system(read_sprites_system());
     }
     
     /// Finalizes Stray app configuring
@@ -366,9 +370,12 @@ pub fn resize(render_res: &Resources, global_res: &Resources, new_size: winit::d
     if new_size.width > 0 && new_size.height > 0 {
         global_res.get_mut::<Settings>().unwrap().width = new_size.width;
         global_res.get_mut::<Settings>().unwrap().height = new_size.height;
-        render_res.get_mut::<EngineData<SurfaceConfiguration>>().unwrap().0.width = new_size.width;
-        render_res.get_mut::<EngineData<SurfaceConfiguration>>().unwrap().0.height = new_size.height;
-        render_res.get::<EngineData<Surface>>().unwrap().0.configure(&render_res.get::<EngineData<Device>>().unwrap().0, &render_res.get::<EngineData<SurfaceConfiguration>>().unwrap().0);
+        render_res.get_mut::<SConfig>().unwrap().raw_mut().width = new_size.width;
+        render_res.get_mut::<SConfig>().unwrap().raw_mut().height = new_size.height;
+        render_res.get::<SSurface>().unwrap().raw().configure(
+            &render_res.get::<SDevice>().unwrap().raw(), 
+            &render_res.get::<SConfig>().unwrap().raw()
+        );
     }
 }
 

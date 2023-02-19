@@ -1,35 +1,13 @@
 use wgpu::*;
+use hal::*;
 
 use stray_material::{
     StandardMaterial,
     StrayColor,
 };
 
+
 use crate::types::Transform2D;
-
-
-pub struct RenderObject{
-    // 0 is normal drawing, 1 is texture drawing
-    pub type_id: i32,
-    pub vertex: Option<StrayVertexBuffer>,
-    pub index: Option<StrayIndexBuffer>,
-    pub bind_group: Option<BindGroup>,
-}
-
-impl RenderObject{
-    pub fn get_type(&self) -> i32{
-        self.type_id
-    }
-    pub fn get_vertex(&self) -> &StrayVertexBuffer{
-        self.vertex.as_ref().unwrap()
-    }
-    pub fn get_index(&self) -> &StrayIndexBuffer{
-        self.index.as_ref().unwrap()
-    }
-    pub fn get_bind_group(&self) -> &BindGroup{
-        self.bind_group.as_ref().unwrap()
-    }
-}
 
 
 #[derive(Debug, Copy, Clone)]
@@ -39,7 +17,7 @@ pub struct TextureVertex{
     layer: i32,
     tex_coordx: f32,
     tex_coordy: f32,
-    pub material: StandardMaterial,
+    material: StandardMaterial,
 }
 
 impl TextureVertex{
@@ -139,22 +117,33 @@ impl RawVertex{
 }
 
 
-pub struct StrayIndexBuffer(pub Option<Buffer>,pub u32);  
-pub struct StrayVertexBuffer(pub Option<Buffer>, pub u32);
-pub struct StrayTextureRenderPipeline(pub RenderPipeline, pub BindGroupLayout);
-pub struct StrayShapeRenderPipeline(pub RenderPipeline);
-pub struct RenderQuery(pub Vec<RenderObject>);
-pub struct EngineData<D>(pub D);
-pub struct PhysicData<D>(pub D);
+pub struct SIndexBuffer(pub Option<Buffer>,pub u32);  
+pub struct SVertexBuffer(pub Option<Buffer>, pub u32);
 
-impl <D>EngineData<D>{
-    pub fn set(&mut self, data: D){
-        self.0 = data;
+impl SIndexBuffer{
+    pub fn with(data: (Buffer, u32)) -> Self{
+        Self(Some(data.0), data.1)
+    }
+
+    pub fn buffer(&self) -> &Option<Buffer>{
+        &self.0
+    }
+
+    pub fn len(&self) -> u32{
+        self.1
     }
 }
 
-impl <D>PhysicData<D>{
-    pub fn set(&mut self, data: D){
-        self.0 = data;
+impl SVertexBuffer{
+    pub fn with(data: (Buffer, u32)) -> Self{
+        Self(Some(data.0), data.1)
+    }
+    
+    pub fn buffer(&self) -> &Option<Buffer>{
+        &self.0
+    }
+
+    pub fn len(&self) -> u32{
+        self.1
     }
 }

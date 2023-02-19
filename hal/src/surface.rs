@@ -30,4 +30,8 @@ impl SConfig{
     pub fn raw(&self) -> &wgpu::SurfaceConfiguration{
         &self.0
     }
+
+    pub fn raw_mut(&mut self) -> &mut wgpu::SurfaceConfiguration{
+        &mut self.0
+    }
 }

@@ -15,12 +15,11 @@ pub fn init_ball(cmd: &mut CommandBuffer){
             velocity: vec2(2.0,2.0)
         },
         Transform2D::new(
-            0, 
-            0, 
-            0, 
-            0.5
+            vec2(0.0,0.0),
+            0,
+            vec2(0.5,0.5)
         ),
-        Sprite::new(include_bytes!("textures/ball.png"), 0)
+        Sprite::new(0, include_bytes!("textures/ball.png"), 0)
     )); // Initialize ball
 }
 

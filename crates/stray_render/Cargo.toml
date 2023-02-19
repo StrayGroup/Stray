@@ -11,10 +11,13 @@ winit = "0.28.1"
 pollster = "0.2.5"
 legion = "0.4.0"
 smaa = "0.8.0"
+glam = "0.22.0"
 
 wgpu = {version = "0.15.0", features = ["glsl"]}
 bytemuck = {version = "1.12.3", features = ["derive"]}
 
-stray_material = {path="../stray_material"}
+hal = {path="../../hal"}
+
 stray_scene = {path="../stray_scene"}
+stray_material = {path="../stray_material"}
 stray_texture = {path="../stray_texture"}

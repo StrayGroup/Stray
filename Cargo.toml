@@ -7,7 +7,7 @@ edition = "2021"
 
 [workspace]
 exclude = ["modules/*", "thirdparty/*", "extension"]
-members = ["crates/*"]
+members = ["crates/*", "hal"]
 
 
 [dependencies]

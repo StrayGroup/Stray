@@ -4,19 +4,6 @@ use legion::*;
 
 #[system(for_each)]
 fn draw(draw: &mut Canvas){
-    let mut line = Line2D::new(
-        Point2D { 
-            position: vec2(0.0,0.0), 
-            rotation: 0.0, 
-            scale: 1.0 
-        }, 
-        Point2D { 
-            position: vec2(100.0, 0.0), 
-            rotation: 0.0, 
-            scale: 1.0 
-        }
-    );
-    line.right();
     let vertices = vec![
         Vertex::new(-500, -500,0), Vertex::new(500, -500,0), Vertex::new(-500, 500,0), 
     ];
@@ -34,7 +21,10 @@ fn draw(draw: &mut Canvas){
 fn main(){
     Stray::new()
         .with_title("Stray App")
-        .push((Canvas::init(0, 0, 0),))
+        .push((
+            Canvas::init(0),
+            Transform2D::ZERO
+        ))
         .add_system(draw_system())
         .build()
         .run();

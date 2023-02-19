@@ -13,6 +13,8 @@ smaa = "0.8.0"
 
 wgpu = {version = "0.15.0", features = ["glsl"]}
 
+hal = {path="../../hal"}
+
 stray_render= {path="../stray_render"}
 stray_scene = {path="../stray_scene"}
 stray_texture = {path="../stray_texture"}
